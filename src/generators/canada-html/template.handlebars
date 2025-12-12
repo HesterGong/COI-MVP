@@ -1,0 +1,379 @@
+<link href="https://fonts.googleapis.com/css?family=Montserrat:400,600,800" rel="stylesheet" />
+<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+<style>
+  :root {
+    --bold-weight: 600;
+    --color: #d2ecef;
+    --dark-color: #46b2bb;
+    --font-size: 0.6rem;
+  }
+
+  body {
+    font-family: 'Montserrat';
+    font-size: var(--font-size);
+    margin: 0;
+  }
+
+  article {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  table {
+    font-size: var(--font-size);
+  }
+
+  .coverage-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .coverage-table>thead tr:nth-child(2)>th,
+  .coverage-table>thead tr:nth-child(3)>th {
+    background-color: var(--color);
+  }
+
+  .coverage-table th {
+    font-size: var(--font-size);
+    text-transform: uppercase;
+  }
+
+  .coverage-table thead>tr:not(:first-child)>th,
+  .coverage-table td {
+    border: thin ridge;
+    border-width: thin;
+    font-size: var(--font-size);
+  }
+
+  header .title {
+    color: var(--dark-color);
+  }
+
+  section {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1rem 1fr;
+    grid-template-rows: auto 1fr;
+    padding-bottom: 1rem;
+  }
+
+  section>div:first-child {
+    background-color: var(--dark-color);
+    font-weight: var(--bold-weight);
+  }
+
+  section>div:nth-child(2) {
+    background-color: var(--color);
+    font-weight: var(--bold-weight);
+    letter-spacing: -0.05rem;
+    text-transform: uppercase;
+  }
+
+  section>div:nth-child(3) {
+    grid-column: span 2;
+  }
+
+
+  .small-text {
+    font-size: xx-small;
+    font-weight: lighter;
+  }
+
+  .logo {
+    width: 50px;
+  }
+
+  .signature {
+    width: 150px;
+  }
+</style>
+
+<header class="text-center px-4">
+  <img class="logo ml-4 float-left"
+    src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVYAAAEoCAMAAAA0WSkAAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABAZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQwIDc5LjE2MDQ1MSwgMjAxNy8wNS8wNi0wMTowODoyMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjVEMjA4OTI0OTNCRkRCMTE5MTRBODU5MEQzMTUwOEM4IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkM2OTUwQjdBREFDMTExRThCMjI3RjI3REFBNzBBNjk5IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkM2OTUwQjc5REFDMTExRThCMjI3RjI3REFBNzBBNjk5IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIElsbHVzdHJhdG9yIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6OWJjMmJkNjctNjc4ZS0xODQ3LWEyMTctNmFjMDM5ZDYyMjA5IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlk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" />
+  <div class="title p-2 text-xl font-bold uppercase">Certificate Of Liability Insurance</div>
+  <div>
+    This certificate is issued as a matter of information only and confers no
+    rights upon the certificate holder and<br/>imposes no liability on the insurer.
+    This certificate does not amend, extend or alter the coverage afforded by
+    the policies below.
+  </div>
+</header>
+
+<article class="px-4">
+  <section class="col-span-1">
+    <div>1.</div>
+    <div>Certificate Holder - Name and Mailing Address</div>
+    <div>
+      <div class="font-bold">{{additionalInsured.name}}</div>
+      <div>{{additionalInsured.address.street}}</div>
+      <div>
+        {{additionalInsured.address.city}}, {{toLongProvinceName additionalInsured.address.province}},
+        {{additionalInsured.address.postalCode}}
+      </div>
+    </div>
+  </section>
+  <section class="col-span-1">
+    <div>2.</div>
+    <div>Insured's Full Name And Mailing Address</div>
+    <div>
+      <div class="font-bold">{{namedInsured.name}}</div>
+      <div>{{namedInsured.address.street}}</div>
+      <div>{{namedInsured.address.city}}, {{toLongProvinceName namedInsured.address.province}},
+        {{namedInsured.address.postalCode}}</div>
+    </div>
+  </section>
+  <section>
+    <div>3.</div>
+    <div>
+      DESCRIPTION OF OPERATIONS/LOCATIONS/AUTOMOBILES/SPECIAL ITEMS TO WHICH
+      THIS CERTIFICATE APPLIES
+      <span class="small-text">(only with respect to the operations of the Named Insured)</span>
+    </div>
+    <div>{{descriptionOfOperations}}</div>
+  </section>
+  <section>
+    <div>4.</div>
+    <div>Coverages</div>
+    <div>
+      <div>
+        This is to certify that the policies of insurance listed below have been
+        issued to the insured named above for the policy period indicated
+        notwithstanding any requirements, terms or conditions of any contract or
+        other document with respect to which this certificate may be issued or may
+        pertain. The insurance afforded by the policies described herein is
+        subject to all terms, exclusions and conditions of such policies.
+      </div>
+      <table class="coverage-table">
+        <thead>
+          <tr>
+            <th colspan="2"></th>
+            <th colspan="5">
+              Limits shown may have been reduced by paid claims
+            </th>
+          </tr>
+          <tr>
+            <th rowspan="2">Type of Insurance</th>
+            <th rowspan="2">Insurance Company and Policy Number</th>
+            <th rowspan="2">
+              Effective Date <span class="small-text">YYYY/MM/DD</span>
+            </th>
+            <th rowspan="2">
+              Expiry Date <span class="small-text">YYYY/MM/DD</span>
+            </th>
+            <th colspan="3">Limits of Liability</th>
+          </tr>
+          <tr>
+            <th>Coverage</th>
+            <th>DED.</th>
+            <th>Amount of Insurance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td rowspan="7" class="uppercase">
+              <div class="font-bold pb-1">Commercial General Liability</div>
+              <div class="pb-1">
+                ☐ Claims Made
+                <div class="font-bold underline">or</div>
+                ☑ Occurrence
+              </div>
+              <div class="pb-1">☑ Products and/or Completed</div>
+              <div class="pb-1">☐ Operations Employer's Liability</div>
+              <div class="pb-1">☑ Cross Liability</div>
+              <div class="pb-1">☑ Tenants Legal Liability</div>
+              <div class="pb-1">
+                {{#if coverages.gl.pollutionLiabilityExtension}}
+                ☑
+                {{else}}
+                ☐
+                {{/if}}
+                Pollution Liability Extension</div>
+            </td>
+            <td rowspan="7">{{insuranceCompany}} - {{policyFoxdenId}}</td>
+            <td rowspan="7">{{formatDate effectiveDate}}</td>
+            <td rowspan="7">{{formatDate expiryDate}}</td>
+            <td class="uppercase">
+              <div>Commercial General Liability</div>
+              <div>Bodily Injury and Property Damage Liability</div>
+              <div>- General Aggregate Limit</div>
+            </td>
+            <td>{{formatCurrency coverages.gl.generalAggregate.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.generalAggregate.amount}}</td>
+          </tr>
+          <tr>
+            <td class="uppercase">
+              <div>- Each Occurrence</div>
+            </td>
+            <td>{{formatCurrency coverages.gl.eachOccurrence.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.eachOccurrence.amount}}</td>
+          </tr>
+          <tr>
+            <td class="uppercase">
+              <div>- Products and Completed Operations Aggregate</div>
+            </td>
+            <td>{{formatCurrency coverages.gl.productAndCompletedOperationsAggregate.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.productAndCompletedOperationsAggregate.amount}}</td>
+          </tr>
+          <tr>
+            <td class="uppercase">Personal And Advertising Injury Liability</td>
+            <td>{{formatCurrency coverages.gl.personalAndAdvertisingInjuryLiability.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.personalAndAdvertisingInjuryLiability.amount}}</td>
+          </tr>
+          <tr>
+            <td class="uppercase">Medical Payments</td>
+            <td>{{formatCurrency coverages.gl.medicalPayments.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.medicalPayments.amount}}</td>
+          </tr>
+          <tr>
+            <td class="uppercase">Tenants Legal Liability</td>
+            <td>{{formatCurrency coverages.gl.tenantLegalLiability.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.tenantLegalLiability.amount}}</td>
+          </tr>
+          {{#if coverages.gl.pollutionLiabilityExtension}}
+          <tr>
+            <td class="uppercase">Pollution Liability Extension</td>
+            <td>{{formatCurrency coverages.gl.pollutionLiabilityExtension.deductible}}</td>
+            <td>{{formatCurrency coverages.gl.pollutionLiabilityExtension.amount}}</td>
+          </tr>
+          {{else}}
+          <tr>
+            <td class="uppercase"></td>
+            <td></td>
+            <td></td>
+          </tr>
+          {{/if}}
+          <tr>
+            <td class="uppercase">
+              ☐ Non-owned Automobiles
+              <br />
+              ☐ Hired Automobiles
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="uppercase">Non Owned Automobile</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="uppercase">
+              <div class="font-bold">Other Liability (specify)</div>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          {{#if coverages.eo}}
+          <tr>
+            <td class="uppercase" rowspan="2">☑ Miscellaneous E&amp;O</td>
+            <td rowspan="2">{{insuranceCompany}} - {{policyFoxdenId}}</td>
+            <td rowspan="2">{{formatDate effectiveDate}}</td>
+            <td rowspan="2">{{formatDate expiryDate}}</td>
+            <td>Miscellaneous E&amp;O General Aggregate</td>
+            <td>{{formatCurrency coverages.eo.deductible}}</td>
+            <td>{{formatCurrency coverages.eo.aggregateAmount}}</td>
+
+          </tr>
+          <tr>
+            <td>Miscellaneous E&amp;O Each Occurrence</td>
+            <td>{{formatCurrency coverages.eo.deductible}}</td>
+            <td>{{formatCurrency coverages.eo.occurrenceAmount}}</td>
+          </tr>
+          {{/if}}
+          {{#each coverages.others}}
+          <tr>
+            <td class="uppercase">
+              ☑ {{name}}
+            </td>
+            <td>{{../insuranceCompany}} - {{../policyFoxdenId}}</td>
+            <td>{{formatDate ../effectiveDate}}</td>
+            <td>{{formatDate ../expiryDate}}</td>
+            <td class="uppercase">{{name}}</td>
+            <td>{{formatCurrency limit.deductible}}</td>
+            <td>{{formatCurrency limit.amount}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section>
+    <div>5.</div>
+    <div>Cancellation</div>
+    <div class="text-xs">
+      Should any of the above described policies be canceled before the
+      expiration date thereof, the issuing company will endeavor to mail 30
+      days written notice to the certificate holder named above, but failure to
+      mail such notice shall impose no obligation or liability of any kind upon
+      the company, its agents or representatives.
+    </div>
+  </section>
+  <section class="col-span-1">
+    <div>6.</div>
+    <div>Brokerage/Agency Full Name And Mailing Address</div>
+    <div>
+      <div class="font-bold">Foxquilt Insurance Services Inc.</div>
+      <div>710 - 145 King St W</div>
+      <div>Toronto, ON, M5H 1J8</div>
+    </div>
+  </section>
+  <section class="col-span-1">
+    <div>7.</div>
+    <div>
+      Additional Insured Name And Mailing Address
+      <span class="small-text">(but only with respect to the operations of the Named Insured)</span>
+    </div>
+    <div>
+      <div class="font-bold">{{additionalInsured.name}}</div>
+      <div>{{additionalInsured.address.street}}</div>
+      <div>
+        {{additionalInsured.address.city}}, {{toLongProvinceName additionalInsured.address.province}},
+        {{additionalInsured.address.postalCode}}
+      </div>
+    </div>
+  </section>
+  <section>
+    <div>8.</div>
+    <div>Certificate Authorization</div>
+    <div class="grid grid-cols-2">
+      <table>
+        <tr>
+          <td>Issuer</td>
+          <td>Foxquilt Insurance Services</td>
+        </tr>
+        <tr>
+          <td>Authorized Representative</td>
+          <td>Mark Morisette</td>
+        </tr>
+        <tr>
+          <td>Signature of Authorized Representative</td>
+          <td>
+            <img class="signature"
+              src="data:image/png;base64,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" />
+          </td>
+        </tr>
+      </table>
+      <div>
+        <div class="font-bold">Contact Numbers(s)</div>
+        <div>
+          <div>
+            <span class="uppercase">No.</span>
+            1-888-878-4588
+          </div>
+          <div>
+            <span class="uppercase">Date</span>
+            {{formatDate dateNow}}
+          </div>
+          <div>
+            <span class="uppercase">Email Address</span>
+            support@foxquilt.com
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</article>
