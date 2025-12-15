@@ -1,13 +1,14 @@
 import path from 'node:path';
 
 import { renderCanadaHtml } from './html/htmlGenerator.mjs';
-import { UsAcordCoiGenerator } from './acord25pdf/pdfGenerator.mjs';
+import { UsAcordCoiGenerator } from './acord25/pdfGenerator.mjs';
 
 export async function loadPdf(config, mappedFields) {
   // US: ACORD 25 PDF form-fill
   if (config.templateType === 'acord25') {
     const us = new UsAcordCoiGenerator({
-      pdfPath: path.resolve(config.pdfTemplatePath),
+      pdfPath: config.templatePath,
+      formsConfigPath: config.formsConfigPath,
       strict: config.strictPdfFields ?? true
     });
 

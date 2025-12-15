@@ -10,10 +10,10 @@ export const COI_CONFIGS = [
     carrierPartner: 'StateNational',
     dbCollection: 'general_liability_policies',
     templateType: 'acord25',
-    pdfTemplatePath: './assets/acord_25_2016-03.pdf',
+    templatePath: './templates/acord25/acord_25_2016-03.pdf',
 
     // optional (US only): choose the forms config file (StateNational vs Munich)
-    formsConfigPath: './configs/UScoiFormsConfigs-StateNational.json',
+    formsConfigPath: './src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json',
 
     fieldMappings: {
       insured: 'canonical.insured.block',
@@ -53,8 +53,8 @@ export const COI_CONFIGS = [
     carrierPartner: 'StateNational',
     dbCollection: 'eo_policies',
     templateType: 'acord25',
-    pdfTemplatePath: './assets/acord_25_2016-03.pdf',
-    formsConfigPath: './configs/UScoiFormsConfigs-StateNational.json',
+    templatePath: './templates/acord25/acord_25_2016-03.pdf',
+    formsConfigPath: './src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json',
 
     fieldMappings: {
       insured: 'canonical.insured.block',
@@ -95,7 +95,7 @@ export const COI_CONFIGS = [
     dbCollection: 'general_liability_policies',
 
     templateType: 'html-handlebars',
-    templatePath: './assets/template.handlebars',
+    templatePath: './templates/html/template.handlebars',
 
     fieldMappings: {
       // for Canada template, policyFoxdenId is used as "policy number" display in HTML

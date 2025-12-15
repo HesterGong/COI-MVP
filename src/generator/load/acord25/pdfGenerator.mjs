@@ -2,18 +2,11 @@ import path from 'node:path';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { format } from 'date-fns';
 import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-function loadJson(relPath) {
-  return JSON.parse(readFileSync(join(__dirname, relPath), 'utf-8'));
+function loadJson(p, baseDir = process.cwd()) {
+  const abs = path.isAbsolute(p) ? p : path.resolve(baseDir, p);
+  return JSON.parse(readFileSync(abs, "utf-8"));
 }
-
-const UScoiFormsConfigsMunich = loadJson('../form-configs/UScoiFormsConfigs-Munich.json');
-const UScoiFormsConfigsStateNational = loadJson('../form-configs/UScoiFormsConfigs-StateNational.json');
 
 function debugListPdfFields(form) {
   const names = form.getFields().map(f => f.getName());
@@ -89,12 +82,15 @@ function buildCertificateHolderBlock(holder) {
 }
 
 export class UsAcordCoiGenerator {
-  constructor({ pdfPath, strict = true }) {
+  constructor({ pdfPath, formsConfigPath, strict = true }) {
     this.pdfPath = pdfPath;
-    this.strict = strict; // if true: crash when config references missing PDF field
+    this.formsConfigPath = formsConfigPath;
+    this.strict = strict;
   }
 
   async generateOne(input, lob) {
+    const formsConfig = loadJson(this.formsConfigPath, process.cwd());
+    const formList = formsConfig.forms;
     // Mirror old logic: inject system fields before mapping.
     const enrichedInput = {
       ...input,
@@ -108,13 +104,7 @@ export class UsAcordCoiGenerator {
     const form = pdfDoc.getForm();
     debugListPdfFields(form);
 
-    const carrierPartner = enrichedInput.carrierPartner ?? 'StateNational';
     const timeZone = enrichedInput.timeZone ?? 'America/New_York';
-
-    const formList =
-      carrierPartner === 'StateNational'
-        ? UScoiFormsConfigsStateNational.forms
-        : UScoiFormsConfigsMunich.forms;
 
     // Optional strict validation: surface mismatched PDF field names immediately
     if (this.strict) {
