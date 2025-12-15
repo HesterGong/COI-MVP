@@ -22,13 +22,14 @@ export async function runPipeline({
   additionalInsured
 }) {
   const raw = await extract(config.dbCollection, { workflowId, policyFoxdenId, lob, geography });
+  // transform
   const transformed = await applyTransforms(raw, config.transforms ?? []);
   const canonical = await buildCanonical({ transformed, lob, geography, additionalInsured });
-
+  // map
   const mapped = mapData(
     { canonical, lob, geography, carrierPartner, timeZone },
     config.fieldMappings
   );
-
+  // load
   return loadPdf(config, mapped);
 }
