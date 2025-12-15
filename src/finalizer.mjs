@@ -16,6 +16,7 @@ export class CoiFinalizer {
    * @param {{ workflowId: string, lob: string, pdfBytes: Uint8Array }} evt
    */
   async onLobDone({ workflowId, lob, pdfBytes }) {
+    console.log(`Finalizer received LOB done: ${workflowId} / ${lob}`);
     if (!this.buffers.has(workflowId)) this.buffers.set(workflowId, new Map());
     this.buffers.get(workflowId).set(lob, pdfBytes);
 
