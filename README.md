@@ -312,7 +312,48 @@ PDF text looks blank in some viewers
 * The US renderer calls `form.updateFieldAppearances(font)` to improve compatibility.
   If you add new fields or fonts, ensure appearances are updated.
 
-## Productionization checklist (non-MVP)
+---
+
+## TODO / Known Limitations (MVP)
+
+### Merge is not a first-class system component
+
+Document merging is **not modeled as an explicit architectural layer**.
+
+Current behavior:
+
+* ETL (`extract → transform → map → load`) runs **per LOB**
+* Each `generateCOI(...)` invocation produces **one PDF per LOB**
+* `finalizer.mjs` performs a **naive PDF concatenation**:
+
+  * hard-coded
+  * order-based
+  * assumes one PDF per LOB
+  * writes a single output to `./out`
+
+Architectural constraints:
+
+* Merge logic exists only as **post-processing orchestration**
+* Not part of ETL
+* Not configurable or strategy-driven
+* Not reusable across workflows
+* No support for:
+
+  * conditional inclusion/exclusion
+  * page interleaving
+  * cover or summary pages
+  * partial failure handling
+
+Future work:
+
+* Introduce an explicit merge layer with clear inputs/outputs
+* Make merge behavior config- and strategy-driven
+* Decouple merging from local file output
+* Support richer document composition
+
+---
+
+## Productionization checklist
 
 * Replace `src/fixtures.mjs` with MongoDB extract logic (keep the extract boundary)
 * Move configuration to a real config store (S3 / DB / repo config)
