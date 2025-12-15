@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Handlebars from 'handlebars';
-import html2pdf from '../../utils/html2pdf.mjs';
+import html2pdf from '../utils/html2pdf.mjs';
 import {
   formatCurrencyCAD,
   formatDateCA,

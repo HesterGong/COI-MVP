@@ -1,4 +1,4 @@
-export function randomId(prefix = 'corr') {
+export function randomId(prefix = 'workflow') {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 

@@ -95,7 +95,7 @@ export const COI_CONFIGS = [
     dbCollection: 'general_liability_policies',
 
     templateType: 'html-handlebars',
-    templatePath: './src/generators/canada-html/template.handlebars',
+    templatePath: './assets/template.handlebars',
 
     fieldMappings: {
       // for Canada template, policyFoxdenId is used as "policy number" display in HTML

@@ -16,7 +16,7 @@ bus.subscribe('COIRequested', async (evt) => {
 
   for (const lob of evt.lobs) {
     const { pdfBytes } = await generateCOI({
-      workflowId: evt.correlationId,
+      workflowId: evt.workflowId,
       policyFoxdenId: evt.policyFoxdenId,
       lob,
       geography: evt.geography,
@@ -26,7 +26,7 @@ bus.subscribe('COIRequested', async (evt) => {
     });
 
     await finalizer.onLobDone({
-      correlationId: evt.correlationId,
+      workflowId: evt.workflowId,
       lob,
       pdfBytes
     });
@@ -39,12 +39,12 @@ bus.subscribe('COIRequested', async (evt) => {
  * =========================
  */
 {
-  const correlationId = randomId();
+  const workflowId = randomId();
   const selectedLobs = ['GL', 'EO'];
 
   await bus.publish(
     COIRequested({
-      correlationId,
+      workflowId,
       policyFoxdenId: 'POLICY-ROOT-US-123',
       geography: 'US',
       timeZone: 'America/New_York',
@@ -69,12 +69,12 @@ bus.subscribe('COIRequested', async (evt) => {
  * =========================
  */
 {
-  const correlationId = randomId();
+  const workflowId = randomId();
   const selectedLobs = ['GL']; // Canada MVP: GL only
 
   await bus.publish(
     COIRequested({
-      correlationId,
+      workflowId,
       policyFoxdenId: 'POLICY-ROOT-CA-123',
       geography: 'CA',
       timeZone: 'America/Toronto',

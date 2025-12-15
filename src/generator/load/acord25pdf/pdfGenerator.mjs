@@ -12,8 +12,8 @@ function loadJson(relPath) {
   return JSON.parse(readFileSync(join(__dirname, relPath), 'utf-8'));
 }
 
-const UScoiFormsConfigsMunich = loadJson('./configs/UScoiFormsConfigs-Munich.json');
-const UScoiFormsConfigsStateNational = loadJson('./configs/UScoiFormsConfigs-StateNational.json');
+const UScoiFormsConfigsMunich = loadJson('../form-configs/UScoiFormsConfigs-Munich.json');
+const UScoiFormsConfigsStateNational = loadJson('../form-configs/UScoiFormsConfigs-StateNational.json');
 
 function debugListPdfFields(form) {
   const names = form.getFields().map(f => f.getName());

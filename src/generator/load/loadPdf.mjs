@@ -1,7 +1,7 @@
 import path from 'node:path';
 
-import { renderCanadaHtml } from '../../generators/canada-html/index.mjs';
-import { UsAcordCoiGenerator } from '../../generators/us-acord.mjs';
+import { renderCanadaHtml } from './html/htmlGenerator.mjs';
+import { UsAcordCoiGenerator } from './acord25pdf/pdfGenerator.mjs';
 
 export async function loadPdf(config, mappedFields) {
   // US: ACORD 25 PDF form-fill
@@ -19,7 +19,7 @@ export async function loadPdf(config, mappedFields) {
   // CA: Handlebars HTML -> PDF (Browserless)
   if (config.templateType === 'html-handlebars') {
     const pdfBuffer = await renderCanadaHtml({
-      templatePath: config.templatePath, // e.g. ./src/generators/canada-html/template.handlebars
+      templatePath: config.templatePath, // e.g. ./src/templates/canada-html/template.handlebars
       fields: mappedFields,
       timeZone: mappedFields.timeZone ?? 'America/Toronto',
       browserlessToken:

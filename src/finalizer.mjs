@@ -8,36 +8,36 @@ export class CoiFinalizer {
    */
   constructor({ expectedLobs }) {
     this.expectedLobs = expectedLobs;
-    /** @type {Map<string, Map<string, Uint8Array>>} correlationId -> (lob -> pdfBytes) */
+    /** @type {Map<string, Map<string, Uint8Array>>} workflowId -> (lob -> pdfBytes) */
     this.buffers = new Map();
   }
 
   /**
-   * @param {{ correlationId: string, lob: string, pdfBytes: Uint8Array }} evt
+   * @param {{ workflowId: string, lob: string, pdfBytes: Uint8Array }} evt
    */
-  async onLobDone({ correlationId, lob, pdfBytes }) {
-    if (!this.buffers.has(correlationId)) this.buffers.set(correlationId, new Map());
-    this.buffers.get(correlationId).set(lob, pdfBytes);
+  async onLobDone({ workflowId, lob, pdfBytes }) {
+    if (!this.buffers.has(workflowId)) this.buffers.set(workflowId, new Map());
+    this.buffers.get(workflowId).set(lob, pdfBytes);
 
-    if (!this._allDone(correlationId)) return;
+    if (!this._allDone(workflowId)) return;
 
-    const merged = await this._merge(correlationId);
+    const merged = await this._merge(workflowId);
     await fs.mkdir('out', { recursive: true });
-    const outPath = path.join('out', `COI_${correlationId}.pdf`);
+    const outPath = path.join('out', `COI_${workflowId}.pdf`);
     await fs.writeFile(outPath, Buffer.from(merged));
 
     // MVP “email”
     console.log(`EMAIL SENT (log only): ${outPath}`);
   }
 
-  _allDone(correlationId) {
-    const m = this.buffers.get(correlationId);
+  _allDone(workflowId) {
+    const m = this.buffers.get(workflowId);
     if (!m) return false;
     return this.expectedLobs.every((lob) => m.has(lob));
   }
 
-  async _merge(correlationId) {
-    const m = this.buffers.get(correlationId);
+  async _merge(workflowId) {
+    const m = this.buffers.get(workflowId);
     const merged = await PDFDocument.create();
     for (const lob of this.expectedLobs) {
       const bytes = m.get(lob);
