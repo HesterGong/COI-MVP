@@ -21,11 +21,12 @@ export async function runPipeline({
   timeZone,
   additionalInsured
 }) {
+  // extract
   const raw = await extract(config.dbCollection, { workflowId, policyFoxdenId, lob, geography });
   // transform
   const transformed = await applyTransforms(raw, config.transforms ?? []);
   const canonical = await buildCanonical({ transformed, lob, geography, additionalInsured });
-  // map
+  // map: read field mappings from config
   const mapped = mapData(
     { canonical, lob, geography, carrierPartner, timeZone },
     config.fieldMappings

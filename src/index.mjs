@@ -15,6 +15,7 @@ bus.subscribe('COIRequested', async (evt) => {
   const finalizer = new CoiFinalizer({ expectedLobs: evt.lobs });
 
   for (const lob of evt.lobs) {
+    // get coi config for this lob, geography, carrierPartner combo
     const { pdfBytes } = await generateCOI({
       workflowId: evt.workflowId,
       policyFoxdenId: evt.policyFoxdenId,
