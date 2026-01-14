@@ -5,7 +5,7 @@ This repo is a small, self-contained MVP that generates Certificates of Insuranc
 Goals
 
 - Make the pipeline boundaries explicit (extract → transform → map → load)
-- Keep per-product / per-geography behavior in configuration and pluggable renderers
+- Keep per-LOB / per-geography behavior in configuration and pluggable renderers
 - Allow adding new LOBs, geographies, and templates with minimal code changes
 
 Supported renderers
@@ -36,12 +36,12 @@ yarn start
 
 Outputs are written to:
 
-* `./out/COI_<workflowId>.pdf`
+* `./out/COI_<applicationId>_<lob>.pdf`
 
 The default demo run (see `src/index.mjs`) publishes:
 
-* US workflow: LOBs = GL + EO
-* CA workflow: LOBs = GL
+* US request: LOB = E&O
+* CA request: LOB = GL
 
 ## High-level flow
 
@@ -50,8 +50,8 @@ When a COI is requested, it:
 
 1. Iterates requested LOBs
 2. Calls `generateCOI(...)` per LOB
-3. Sends each per-LOB PDF to the finalizer
-4. Finalizer merges PDFs (one per LOB) into a single document in `out/`
+3. Each invocation generates exactly one COI PDF
+4. Output is written independently per LOB
 
 ASCII view
 
@@ -71,7 +71,7 @@ runPipeline (ETL)
 PDF bytes (per LOB)
    |
    v
-CoiFinalizer merges -> out/COI_<workflowId>.pdf
+write output -> out/COI_<applicationId>_<lob>.pdf
 ```
 
 ## Folder structure
@@ -82,7 +82,6 @@ src/
   bus.mjs                   # simple in-memory event bus
   types.mjs                 # event constructors + randomId()
   fixtures.mjs              # MVP data store (pretend “Mongo collections”)
-  finalizer.mjs             # merges per-LOB PDFs into one output
   generator/
     generateCOI.mjs         # per-LOB entrypoint
     config/
@@ -316,40 +315,20 @@ PDF text looks blank in some viewers
 
 ## TODO / Known Limitations (MVP)
 
-### Merge is not a first-class system component
-
-Document merging is **not modeled as an explicit architectural layer**.
+### Multi-LOB orchestration is intentionally outside COI generation
 
 Current behavior:
 
-* ETL (`extract → transform → map → load`) runs **per LOB**
-* Each `generateCOI(...)` invocation produces **one PDF per LOB**
-* `finalizer.mjs` performs a **naive PDF concatenation**:
+* COI generation is strictly **per LOB**
+* Each `generateCOI(...)` invocation produces **one immutable PDF**
+* Fan-out (multiple LOBs) happens in the caller / orchestrator
+* This repo’s `index.mjs` simulates that orchestration for demo purposes only
 
-  * hard-coded
-  * order-based
-  * assumes one PDF per LOB
-  * writes a single output to `./out`
+Future work (outside this repo’s scope):
 
-Architectural constraints:
-
-* Merge logic exists only as **post-processing orchestration**
-* Not part of ETL
-* Not configurable or strategy-driven
-* Not reusable across workflows
-* No support for:
-
-  * conditional inclusion/exclusion
-  * page interleaving
-  * cover or summary pages
-  * partial failure handling
-
-Future work:
-
-* Introduce an explicit merge layer with clear inputs/outputs
-* Make merge behavior config- and strategy-driven
-* Decouple merging from local file output
-* Support richer document composition
+* Orchestrate COI fan-out via EventBridge / controller service
+* Upload PDFs to S3 and notify/email downstream
+* Add workflow-level aggregation only if required by delivery channels
 
 ---
 
@@ -360,7 +339,7 @@ Future work:
 * Replace Browserless token fallback with secrets management
 * Replace the “in-memory bus” with your real event system (SNS/SQS/EventBridge)
 * Write outputs to S3 and notify/email instead of writing to `./out`
-* Add structured logging and tracing (workflowId, policyFoxdenId, lob, geography)
+* Add structured logging and tracing ({ applicationId, lob }, geography, carrierPartner, policyFoxdenId)
 * Add tests for:
 
   * canonical builder (transform step)
