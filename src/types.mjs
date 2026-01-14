@@ -6,10 +6,6 @@ export function COIRequested(payload) {
   return { type: 'COIRequested', ...payload };
 }
 
-export function COIJobRequested(payload) {
-  return { type: 'COIJobRequested', ...payload };
-}
-
 export function COILobGenerationCompleted(payload) {
   return { type: 'COILobGenerationCompleted', ...payload };
 }
