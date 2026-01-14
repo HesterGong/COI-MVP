@@ -104,7 +104,7 @@ export async function buildCanonical({ transformed, lob, geography, additionalIn
   const policyNumber = policy?.policyNumber ?? policy?.policyFoxdenId ?? transformed?.policyFoxdenId ?? '';
 
   return {
-    workflowId: transformed.workflowId,
+    applicationId: transformed.applicationId,
     geography,
     lob,
 

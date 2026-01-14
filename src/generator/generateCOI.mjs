@@ -4,7 +4,7 @@ import { runPipeline } from './pipeline/runPipeline.mjs';
 /**
  * Entry point (per LOB).
  * Mirrors design doc:
- *   generateCOI({ workflowId, lob, geography, carrierPartner })
+ *   generateCOI({ applicationId, lob, geography, carrierPartner })
  *
  * MVP notes:
  * - no DB (extract reads fixtures)
@@ -19,7 +19,7 @@ export async function generateCOI(input) {
 
   const pdfBytes = await runPipeline({
     config,
-    workflowId: input.workflowId,
+    applicationId: input.applicationId,
     policyFoxdenId: input.policyFoxdenId,
     lob: input.lob,
     geography: input.geography,

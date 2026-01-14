@@ -2,7 +2,7 @@
  * MVP fixture store. In production this would be MongoDB collections.
  *
  * We model:
- * - a "root" workflow/policy id (policyFoxdenId)
+ * - a "root" application/policy id (policyFoxdenId)
  * - LOB-specific "collections" (general_liability_policies, eo_policies, bop_policies)
  *
  * The ETL extract step selects the correct collection based on COIConfig.dbCollection.

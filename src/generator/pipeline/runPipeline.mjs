@@ -13,7 +13,7 @@ import { loadPdf } from '../load/loadPdf.mjs';
  */
 export async function runPipeline({
   config,
-  workflowId,
+  applicationId,
   policyFoxdenId,
   lob,
   geography,
@@ -22,7 +22,7 @@ export async function runPipeline({
   additionalInsured
 }) {
   // extract
-  const raw = await extract(config.dbCollection, { workflowId, policyFoxdenId, lob, geography });
+  const raw = await extract(config.dbCollection, { applicationId, policyFoxdenId, lob, geography });
   // transform
   const transformed = await applyTransforms(raw, config.transforms ?? []);
   const canonical = await buildCanonical({ transformed, lob, geography, additionalInsured });

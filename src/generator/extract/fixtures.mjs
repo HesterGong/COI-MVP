@@ -1,7 +1,7 @@
 export const FIXTURES = {
   general_liability_policies: [
     {
-      workflowId: 'any',
+      applicationId: 'any',
       policyFoxdenId: 'POLICY-ROOT-123',
       lob: 'GL',
       geography: 'US',
@@ -48,7 +48,7 @@ export const FIXTURES = {
 
   eo_policies: [
     {
-      workflowId: 'any',
+      applicationId: 'any',
       policyFoxdenId: 'POLICY-ROOT-123',
       lob: 'EO',
       geography: 'US',
