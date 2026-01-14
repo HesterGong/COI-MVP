@@ -1,21 +1,16 @@
 import { InMemoryEventBus } from './bus.mjs';
 import { randomId, COIRequested } from './types.mjs';
-import { CoiFinalizer } from './finalizer.mjs';
 import { generateCOI } from './generator/generateCOI.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const bus = new InMemoryEventBus();
+const OUT_DIR = path.resolve('./out');
 
-/**
- * =========================
- * Shared subscriber
- * =========================
- * Geography-specific behavior is handled inside generateCOI → loadPdf
- */
 bus.subscribe('COIRequested', async (evt) => {
-  const finalizer = new CoiFinalizer({ expectedLobs: evt.lobs });
+  await fs.mkdir(OUT_DIR, { recursive: true });
 
   for (const lob of evt.lobs) {
-    // get coi config for this lob, geography, carrierPartner combo
     const { pdfBytes } = await generateCOI({
       applicationId: evt.applicationId,
       policyFoxdenId: evt.policyFoxdenId,
@@ -26,19 +21,15 @@ bus.subscribe('COIRequested', async (evt) => {
       additionalInsured: evt.additionalInsured
     });
 
-    await finalizer.onLobDone({
-      applicationId: evt.applicationId,
-      lob,
-      pdfBytes
-    });
+    const outPath = path.join(OUT_DIR, `COI_${evt.applicationId}_${lob}.pdf`);
+    await fs.writeFile(outPath, pdfBytes);
+
+    // MVP “email”
+    console.log(`EMAIL SENT (log only): ${outPath}`);
   }
 });
 
-/**
- * =========================
- * US publish (UNCHANGED)
- * =========================
- */
+// US publish
 {
   const applicationId = randomId();
   const selectedLobs = ['GL', 'EO'];
@@ -64,11 +55,7 @@ bus.subscribe('COIRequested', async (evt) => {
   );
 }
 
-/**
- * =========================
- * Canada publish (NEW)
- * =========================
- */
+// Canada publish
 {
   const applicationId = randomId();
   const selectedLobs = ['GL']; // Canada MVP: GL only
