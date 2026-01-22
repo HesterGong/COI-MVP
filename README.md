@@ -38,15 +38,15 @@ Outputs are written to:
 
 * `./out/COI_<applicationId>_<lob>.pdf`
 
-The default demo run (see `src/index.mjs`) publishes:
+The default demo run (see `src/index.mjs`) invokes the handler for:
 
 * US request: LOB = E&O
 * CA request: LOB = GL
 
 ## High-level flow
 
-`src/index.mjs` creates an in-memory event bus and subscribes to `COIRequested`.
-When a COI is requested, it:
+`src/index.mjs` defines a Lambda-style handler for `COIRequested`.
+When the handler is invoked, it:
 
 1. Iterates requested LOBs
 2. Calls `generateCOI(...)` per LOB
@@ -78,8 +78,7 @@ write output -> out/COI_<applicationId>_<lob>.pdf
 
 ```
 src/
-  index.mjs                 # demo publisher + bus subscriber
-  bus.mjs                   # simple in-memory event bus
+  index.mjs                 # demo invocations + Lambda-style handler
   types.mjs                 # event constructors + randomId()
   fixtures.mjs              # MVP data store (pretend “Mongo collections”)
   generator/
@@ -345,4 +344,3 @@ Future work (outside this repo’s scope):
   * canonical builder (transform step)
   * mapping correctness (map step)
   * renderer integration (golden PDF snapshot or field-level assertions)
-

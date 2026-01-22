@@ -1,13 +1,11 @@
-import { InMemoryEventBus } from './bus.mjs';
 import { randomId, COIRequested } from './types.mjs';
 import { generateCOI } from './generator/generateCOI.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const bus = new InMemoryEventBus();
 const OUT_DIR = path.resolve('./out');
 
-bus.subscribe('COIRequested', async (evt) => {
+export async function handler(evt) {
   await fs.mkdir(OUT_DIR, { recursive: true });
 
   for (const lob of evt.lobs) {
@@ -27,14 +25,14 @@ bus.subscribe('COIRequested', async (evt) => {
     // MVP “email”
     console.log(`EMAIL SENT (log only): ${outPath}`);
   }
-});
+}
 
-// US publish
+// US invoke
 {
   const applicationId = randomId();
   const selectedLobs = ['GL', 'EO'];
 
-  await bus.publish(
+  await handler(
     COIRequested({
       applicationId,
       policyFoxdenId: 'POLICY-ROOT-US-123',
@@ -55,12 +53,12 @@ bus.subscribe('COIRequested', async (evt) => {
   );
 }
 
-// Canada publish
+// Canada invoke
 {
   const applicationId = randomId();
   const selectedLobs = ['GL']; // Canada MVP: GL only
 
-  await bus.publish(
+  await handler(
     COIRequested({
       applicationId,
       policyFoxdenId: 'POLICY-ROOT-CA-123',
