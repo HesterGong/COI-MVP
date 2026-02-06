@@ -2,7 +2,7 @@
 
 ## Epic Overview
 
-**Epic ID:** COI-MVP-2024
+**Epic ID:** COI-2024
 **Priority:** High
 **Total Story Points:** 102
 **Estimated Timeline:** 12-14 weeks
@@ -40,11 +40,11 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 
 ## Story 1: Data Layer & MongoDB Integration
 
-**Story ID:** COI-MVP-1
+**Story ID:** COI-1
 **Priority:** High
 **Story Points:** 13
 **Phase:** 1 - Foundation
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -113,11 +113,11 @@ Build MongoDB data extraction layer for COI-MVP to fetch policy/quote/applicatio
 
 ## Story 2: Transform Layer Enhancement
 
-**Story ID:** COI-MVP-2
+**Story ID:** COI-2
 **Priority:** High
 **Story Points:** 13
 **Phase:** 2 - Core Business Logic
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -191,11 +191,11 @@ Enhance [src/generator/transform/transform.mjs](https://github.com/HesterGong/CO
 
 ## Story 3: Configuration Management
 
-**Story ID:** COI-MVP-3
+**Story ID:** COI-3
 **Priority:** High
 **Story Points:** 5
 **Phase:** 3 - Configuration
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -270,11 +270,11 @@ Enhance configuration system to be fully production-ready and general for future
 
 ## Story 4: Persistence Layer (S3 & Database)
 
-**Story ID:** COI-MVP-4
+**Story ID:** COI-4
 **Priority:** High
 **Story Points:** 13
 **Phase:** 4 - Persistence
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -372,11 +372,11 @@ Build complete persistence layer for S3 uploads and COIRecord database writes. M
 
 ## Story 5: Email & Delivery Service
 
-**Story ID:** COI-MVP-5
+**Story ID:** COI-5
 **Priority:** High
 **Story Points:** 8
 **Phase:** 5 - Delivery
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -477,11 +477,11 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
 
 ## Story 6: Service API & Event Interface
 
-**Story ID:** COI-MVP-6
+**Story ID:** COI-6
 **Priority:** High
 **Story Points:** 13
 **Phase:** 6 - Interface Layer
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -652,11 +652,11 @@ Build API and event interfaces for COI-MVP service. Support both synchronous (RE
 
 ## Story 7: Signature Assets & Carrier Configuration
 
-**Story ID:** COI-MVP-7
+**Story ID:** COI-7
 **Priority:** Medium
 **Story Points:** 3
 **Phase:** 7 - Assets
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -763,11 +763,11 @@ Organize signature assets and implement carrier-specific signature selection log
 
 ## Story 8: Testing & Quality Assurance
 
-**Story ID:** COI-MVP-8
+**Story ID:** COI-8
 **Priority:** High
 **Story Points:** 13
 **Phase:** 8 - Testing
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -953,11 +953,11 @@ Build comprehensive test suite for COI-MVP. Ensure feature parity with reference
 
 ## Story 9: Production Deployment & Operations
 
-**Story ID:** COI-MVP-9
+**Story ID:** COI-9
 **Priority:** High
 **Story Points:** 13
 **Phase:** 9 - Production
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
@@ -1243,11 +1243,11 @@ Deploy COI-MVP as production-ready service with monitoring, alerting, and operat
 
 ## Story 10: Production Readiness & Documentation
 
-**Story ID:** COI-MVP-10
+**Story ID:** COI-10
 **Priority:** High
 **Story Points:** 8
 **Phase:** 10 - Launch Prep
-**Epic:** COI-MVP-2024
+**Epic:** COI-2024
 
 ### Description
 
