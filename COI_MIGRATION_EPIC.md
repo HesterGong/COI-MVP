@@ -30,10 +30,23 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 
 **REUSE PROVEN CODE:** This epic emphasizes porting existing, production-tested code from the old system rather than rewriting from scratch. Key functions like `findPolicyHead`, `generateNamedInsured`, `getPolicyIdByLineOfBusiness`, and data extraction logic will be copied and adapted (TypeScript → JavaScript/ESM) to ensure feature parity and reduce implementation risk. Only fix known bugs (e.g., certificate number concurrency) during porting.
 
+**CONFIG-DRIVEN BEHAVIOR:** Template selection, carrier-specific forms, and signature assets are controlled via configuration. US COI supports StateNational and Munich carriers through distinct ACORD 25 JSON form configs; Canada COI uses Handlebars HTML with insurance company and formatting sourced from config.
+
 ### Repository Context
 
 - **Reference (Old System):** https://github.com/Foxquilt/foxden-policy-document-backend - **DO NOT MODIFY**
 - **Target (New System):** https://github.com/HesterGong/COI-MVP - **Build standalone service**
+
+### Old Function Mapping → New ETL Structure (Doc-only mapping)
+
+- Old `findPolicyHead` → New `src/data/services/PolicyDataExtractor.ts` (Story 1)
+- Old `generateNamedInsured` → New `src/data/utils/generateNamedInsured.ts` (Story 1)
+- Old `isAddressType` → New `src/data/utils/address/isAddressType.ts` (Story 1)
+- Old `getPolicyIdByLineOfBusiness` → New `src/data/utils/getPolicyIdByLineOfBusiness.ts` (Story 1)
+- Old Canada `sendCertificateOfInsurance.ts` (data selection + coverage build) → Extract parts into `extract.ts` (Story 1) and `transform.ts` (Story 2); render via Canada HTML loader
+- Old Canada `generate.ts` (helpers + email) → HTML helpers reused; delivery moves to Story 4 Email Service
+- Old US `sendUsCertificateOfInsurance.ts` (data selection + limits + insured block) → Extract parts into `extract.ts` (Story 1) and `transform.ts` (Story 2); render via ACORD 25 loader
+- Old US `generate.ts` (PDF fill + email + S3) → ACORD form-fill reused; delivery/S3 moves to Story 4 (post-MVP)
 
 ### What Already Exists in COI-MVP
 
@@ -55,6 +68,10 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 ### MVP Scope
 
 - Stories 0–3 define the MVP deliverable (TypeScript setup, Data Layer, Transform Layer, and Configuration Management). Story 4 (Email & Delivery) and beyond are post-MVP.
+
+### Covered Scenarios (MVP)
+- US COI (GL, EO): StateNational and Munich carriers (ACORD 25)
+- Canada COI (GL, optional EO, optional others): Lloyd's (configurable via config)
 
 ---
 
@@ -220,6 +237,10 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 - [MODIFY] `src/generator/extract/extract.mjs` → `extract.ts` - Replace fixtures with real MongoDB
 - [MODIFY] `src/index.mjs` → `index.ts` - Add MongoDB initialization
 
+**References to port (from old system):**
+- Canada COI entry: [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+- US COI entry: [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
+
 ### Acceptance Criteria
 
 - [ ] **Setup TypeScript** - Add tsconfig.json, update package.json with TypeScript + MongoDB dependencies
@@ -242,6 +263,7 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
   - Enforce `QuoteKind.Original` only; gate by geography: Canada vs US rating kinds
   - Capture `recipientEmail` and `timeZone` from `applicationAnswers.data` for downstream delivery and formatting
   - Use `carrierPartner || defaultCarrierPartner` when building inputs (match old system fallback behavior)
+  - Persist carrier metadata in canonical model so Canada HTML has `insuranceCompany` available (default Lloyd's via config)
 - [ ] **Environment config** - Add `.env` with `MONGODB_URI`
 - [ ] **Unit tests** - Test all ported functions
 - [ ] **Integration tests** - Test full extraction flow with MongoDB
@@ -320,6 +342,7 @@ Port existing, proven transformation logic from foxden-policy-document-backend t
   - Use quote dates (policyEffectiveDate/policyExpirationDate), NOT policy dates
   - Derive `policyNumber` via `getPolicyIdByLineOfBusiness(PolicyKind.GL)` only when `policyData.kind` is `Root`
   - Carry `timeZone` and `recipientEmail` through canonical model for Delivery
+  - Select forms config (StateNational vs Munich) via carrier in config; validate PDF fields exist
 - [ ] **Port Canada HTML helpers** from [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts):
   - `formatCurrency()` - CAD formatting
   - `formatDate()` - yyyy/MM/dd format
@@ -390,6 +413,8 @@ See implementation guide: [docs/story3-implementation.md](docs/story3-implementa
 - Profession mapper available via Data Layer (`ProfessionLookupService`) for Transform/Map/Load
 - Documentation present: [docs/story3-implementation.md](docs/story3-implementation.md)
  - US signature embedding driven by carrier config; assets in `templates/signatures/` with generic fallback; missing assets do not break generation (log and continue)
+ - Provide config entries for US StateNational and Munich (GL, EO) with distinct `formsConfigPath` values
+ - Ensure Canada HTML has `insuranceCompany` sourced from config (default: `Certain Underwriters at Lloyd's of London`), not hardcoded
 
 ### Dependencies
 

@@ -12,6 +12,8 @@ Centralize and formalize configuration management to enable adding new geographi
 
 This guide defines the directory structure, TypeScript interfaces, validation, loader strategy, and integration points. It also includes concrete extensibility examples (UK, Australia, BOP, Lloyd's) and ports exact values from the old system (US ACORD 25 form configs, Canada formats, carrier signatures, and insurer name).
 
+Doc-only update: This guide documents configuration design and port targets; no code changes are being applied at this time.
+
 ---
 
 ## Scope
@@ -71,6 +73,7 @@ Design for `src/config/config.ts`: it will contain all interfaces and concrete c
   - Source: [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts)
 - Insurer display name for Canada: "Certain Underwriters at Lloyd's of London" from the COI input builder in:
   - [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+  - In the new ETL, this must be sourced from configuration and set into the canonical model for the Canada HTML template; avoid hardcoding in code.
 - Signature assets:
   - Munich: [templates/signatures/MunichUSSignature.png](coi-mvp-etl/templates/signatures/MunichUSSignature.png)
   - StateNational: [templates/signatures/StateNationalPresidentSignature.png](coi-mvp-etl/templates/signatures/StateNationalPresidentSignature.png)

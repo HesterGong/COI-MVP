@@ -10,6 +10,10 @@
 
 Port existing, proven MongoDB data extraction functions from foxden-policy-document-backend into coi-mvp-etl. Set up TypeScript, remove MVP fixture code, and integrate ported functions with the existing ETL pipeline.
 
+Doc-only update: This guide specifies the exact sources and targets for porting (no code changes applied at this time). Canada and US COI entry points to reference:
+- Canada COI: [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+- US COI: [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
+
 **IMPORTANT:** This story focuses on **PORTING existing code**, not writing new code from scratch. Copy and adapt proven functions that run in production.
 
 ---
@@ -48,6 +52,7 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
   - Remove `getPolicyFromCollection` and `getCoveragesForLob` (fixture functions)
   - Replace with real MongoDB extraction using `PolicyDataExtractor`
   - Add `extractCanadaData()` and `extractUSData()` functions
+  - Use `carrierPartner || defaultCarrierPartner` (fallback) and gate on `QuoteKind.Original` (matches old system)
 
 - [MODIFY] **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/src/index.mjs`
   - Rename to `index.ts` (TypeScript)

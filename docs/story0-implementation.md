@@ -10,6 +10,8 @@
 
 Refactor the current codebase to a clean, TypeScript-based structure that supports all later stories without breaking existing behavior. Establish tooling, environment configuration, and a stable folder layout. Keep generation working during the transition.
 
+Note: For MVP planning, this guide is documentation-only. No code changes are required in this step per current request. Stories 0–3 collectively define the MVP scope; implementation will follow once approved.
+
 ## Outcomes
 
 - TypeScript enabled with strict mode
@@ -97,6 +99,8 @@ coi-mvp-etl/
 - `src/generator/load/acord25/pdfGenerator.mjs` → `src/generator/load/acord25/pdfGenerator.ts`
 - `src/generator/pipeline/runPipeline.mjs` → `src/generator/pipeline/runPipeline.ts`
 - `src/generator/config/form-configs/*` → `src/config/forms/*` (moved)
+
+MVP Note: These moves are planned; no code changes are applied yet. The mapping provides a clear path once execution begins.
 
 ## Implementation Steps
 

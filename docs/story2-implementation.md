@@ -10,6 +10,8 @@
 
 Enhance the transform layer to handle real production data structures for both US and Canada. Port proven transformation logic from the old system, including string-to-number conversion for Canada, structured GL/EO coverage building, and US insured block formatting.
 
+Doc-only update: This guide captures required transformations and the exact old-system references; no code changes are being applied at this time.
+
 **IMPORTANT:** This story focuses on **PORTING existing transformation code**, not writing new code from scratch. The implementation must follow ETL design principles and be configuration-driven for business extensibility.
 
 ---
@@ -50,6 +52,7 @@ Enhance the transform layer to handle real production data structures for both U
 - **File:** [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
 - **Lines:** 107-122
 - **Purpose:** Creates flat UsCoiInput structure with insured block formatting
+  - Carrier-specific forms config (StateNational vs Munich) must be selected via configuration.
 
 **Canada HTML Generation Helpers:**
 - **File:** [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts)
@@ -121,6 +124,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Convert to TypeScript
 - Make format configurable (different geographies may need different formats)
 - Use extracted data from Story 1
+ - Validate ACORD 25 PDF fields exist for chosen carrier config; log and continue if optional fields are missing.
 
 ### 5. US Profession List Formatter (line 117 in sendUsCertificateOfInsurance.ts)
 
