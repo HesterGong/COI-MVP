@@ -34,7 +34,7 @@ You are working on migrating COI (Certificate of Insurance) generation from the 
 
 ## Story Progress
 
-### ✅ Story 1: Data Layer & MongoDB Integration - COMPLETED
+### [DONE] Story 1: Data Layer & MongoDB Integration - COMPLETED
 **Status:** Implementation guide created
 **File:** `docs/story1-implementation.md`
 **What was done:**
@@ -44,11 +44,22 @@ You are working on migrating COI (Certificate of Insurance) generation from the 
 - Fixed certificate number concurrency bug
 - Updated extract layer to use real MongoDB
 
-### 🔄 Story 2: Transform Layer Enhancement - CURRENT
-**Status:** Ready to implement
-**File:** `docs/story2-implementation.md` (TO BE CREATED BY YOU)
+### [DONE] Story 2: Transform Layer Enhancement - COMPLETED
+**Status:** Implementation guide created
+**File:** `docs/story2-implementation.md`
+**What was done:**
+- Created configuration-driven transformation system
+- Ported Canada GL/EO/optional coverages transformation logic
+- Ported US insured block formatting and limits extraction
+- Created geography-specific transformers with Strategy pattern
+- Added Canada HTML helpers (formatCurrency, formatDate, toLongProvinceName)
+- Built extensible configuration for new geographies and LOBs
 
-### 📋 Stories 3-10: Remaining
+### [CURRENT] Story 3: Configuration Management - CURRENT
+**Status:** Ready to implement
+**File:** `docs/story3-implementation.md` (TO BE CREATED BY YOU)
+
+### [Guide] Stories 4-10: Remaining
 **Status:** Defined in epic, awaiting implementation guides
 
 ---
@@ -152,7 +163,7 @@ Create `docs/story{N}-implementation.md` with:
 
 ## Critical Guidelines
 
-### DO ✅
+### DO [DONE]
 - **Use Yarn (not npm)** for package management
   - Run `yarn install` instead of `npm install`
   - Use `yarn add` instead of `npm install <package>`
@@ -183,7 +194,7 @@ Create `docs/story{N}-implementation.md` with:
   - Show exact file paths
   - Document integration points
 
-### DON'T ❌
+### DON'T [REMOVE]
 - **Don't modify old system** (`~/Desktop/repos/foxden-policy-document-backend/`)
   - It's the reference implementation
   - Read-only access
@@ -304,26 +315,26 @@ A: Follow the new system's architecture (separate extract, transform, map, load)
 ## Success Criteria
 
 Your implementation is successful when:
-- ✅ New system produces **same output** as old system
-- ✅ All functions from old system are **ported, not rewritten**
-- ✅ **TypeScript** is used throughout
-- ✅ Code is **integrated into ETL pipeline**
-- ✅ **Tests pass** comparing old vs new output
-- ✅ **Implementation guide exists** for your story
+- [DONE] New system produces **same output** as old system
+- [DONE] All functions from old system are **ported, not rewritten**
+- [DONE] **TypeScript** is used throughout
+- [DONE] Code is **integrated into ETL pipeline**
+- [DONE] **Tests pass** comparing old vs new output
+- [DONE] **Implementation guide exists** for your story
 
 ---
 
 ## Example: How Story 1 Was Completed
 
 ### What Was Done
-1. ✅ Read Story 1 in epic
-2. ✅ Analyzed old system extraction code
-3. ✅ Created `docs/story1-implementation.md` with:
+1. [DONE] Read Story 1 in epic
+2. [DONE] Analyzed old system extraction code
+3. [DONE] Created `docs/story1-implementation.md` with:
    - Complete TypeScript setup
    - All 6 functions to port with exact sources
    - Updated extract.ts with extraction logic
    - Integration with index.ts
-4. ✅ Updated epic Story 1 to be concise and reference implementation guide
+4. [DONE] Updated epic Story 1 to be concise and reference implementation guide
 
 ### Result
 - Epic story: Brief, clear scope, references implementation guide
@@ -332,27 +343,226 @@ Your implementation is successful when:
 
 ---
 
-## Now: Work on Story 2
+## Story 3 Specific Instructions
 
-**Your Task:**
-1. Read Story 2 in `COI_MIGRATION_EPIC.md`
-2. Analyze transformation logic in old system:
-   - `sendCertificateOfInsurance.ts:90-209`
-   - `sendUsCertificateOfInsurance.ts:107-122`
-   - `generate.ts:86-117`
-3. Create `docs/story2-implementation.md` following the template above
-4. Update Story 2 in epic to be concise (like Story 1)
+### What Story 3 Is About
+Port configuration management from the old system to enable extensibility for new geographies, LOBs, and carriers.
 
-**Start Here:**
+### Where to Find Configuration Logic in Old System
+
+**Form Configurations:**
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts`
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts`
+- What to analyze:
+  - Form type selection logic (ACORD 25 vs custom)
+  - Template path resolution
+  - Geography-specific form rules
+
+**Carrier Configurations:**
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts`
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts`
+- What to analyze:
+  - Carrier-specific logic (Munich Re vs Aviva)
+  - Signature selection based on carrier
+  - Carrier metadata (names, addresses, contact info)
+
+**Data Mapping Configurations:**
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts` (lines 90-209)
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts` (lines 107-122)
+- What to analyze:
+  - Field mapping rules
+  - Coverage type mappings
+  - Geography-specific field transformations
+
+**Profession Code Mappings:**
+- File: `~/Desktop/repos/foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionMapper.ts`
+- CSV: `~/Desktop/repos/foxden-policy-document-backend/src/services/policyDocument/munich/tables/profession_mapper.csv`
+- What to analyze:
+  - Profession code to name mapping
+  - How CSV is loaded and cached
+  - Where it's used in transformation
+
+### What Needs to Be Updated in New System
+
+**Current State:**
+- Configurations are hardcoded in code files
+- No central configuration management
+- Adding new geography/LOB requires code changes
+
+**Target State:**
+- Centralized configuration files
+- Hot-reloadable configuration
+- Add new geography/LOB/carrier without code changes
+- Configuration validation
+
+### Your Tasks
+
+**1. Read these files in this exact order:**
 ```bash
-# Read the current transform logic
-cat /home/hestergong/Downloads/coi-mvp-etl/src/generator/transform/transform.mjs
+# Read AI agent instructions
+cat /home/hestergong/Downloads/coi-mvp-etl/docs/AI_AGENT_INSTRUCTIONS.md
 
-# Read the old system Canada transformation
-cat ~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts | sed -n '90,209p'
+# Read the epic
+cat /home/hestergong/Downloads/coi-mvp-etl/COI_MIGRATION_EPIC.md
 
-# Read the old system US transformation
-cat ~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts | sed -n '107,122p'
+# Read Story 1 implementation guide (for reference)
+cat /home/hestergong/Downloads/coi-mvp-etl/docs/story1-implementation.md
+
+# Read Story 2 implementation guide (for reference)
+cat /home/hestergong/Downloads/coi-mvp-etl/docs/story2-implementation.md
 ```
 
-Good luck! Remember: **Port, don't reinvent.** 🚀
+**2. Analyze old system configuration files:**
+```bash
+# Form configuration
+cat ~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts
+cat ~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts
+
+# Carrier configuration
+grep -n "Munich\|Aviva\|carrier" ~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts
+grep -n "Munich\|Aviva\|carrier" ~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts
+
+# Profession mapper
+cat ~/Desktop/repos/foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionMapper.ts
+head -20 ~/Desktop/repos/foxden-policy-document-backend/src/services/policyDocument/munich/tables/profession_mapper.csv
+```
+
+**3. Analyze current configuration in new system:**
+```bash
+# Check existing config files
+find /home/hestergong/Downloads/coi-mvp-etl -name "*.config.*" -o -name "config.ts"
+
+# Check how transformConfig is used (from Story 2)
+cat /home/hestergong/Downloads/coi-mvp-etl/src/generator/transform/transformConfig.ts
+```
+
+**4. Create `/home/hestergong/Downloads/coi-mvp-etl/docs/story3-implementation.md`**
+
+Follow the implementation guide template. Your guide must include:
+
+**Configuration Structure Requirements:**
+- Create `src/config/` directory structure
+- `formConfig.ts` - Form types, templates, geography/LOB mappings
+- `carrierConfig.ts` - Carrier metadata, signatures, addresses
+- `mappingConfig.ts` - Field mappings, coverage mappings, geography-specific rules
+- `professionMapper.ts` - Profession code to name mappings (port CSV data)
+- `index.ts` - Central config loader with validation
+
+**Key Principles:**
+- Configuration-driven: Business users can add new geographies/LOBs by editing config files
+- Type-safe: Use TypeScript interfaces for all configs
+- Validated: Validate configs at startup
+- Hot-reloadable: Support config reload without restart (future-ready)
+- Extensible: Show concrete examples of adding UK, Australia, BOP, etc.
+
+**Integration Points:**
+- Transform layer (Story 2) uses mappingConfig
+- Map layer uses formConfig for template selection
+- Load layer uses carrierConfig for signatures
+- All layers access professionMapper for profession names
+
+**5. Update Story 3 in COI_MIGRATION_EPIC.md**
+
+Make it concise like Story 1 and Story 2:
+- Brief description (2-3 sentences)
+- Reference to implementation guide
+- Scope section (what to remove, create, modify)
+- Concise acceptance criteria (5-7 bullet points)
+
+### Configuration Examples to Include
+
+**Example: Adding UK Geography**
+```typescript
+// In formConfig.ts
+UK: {
+  name: 'United Kingdom',
+  locale: 'en-GB',
+  currency: 'GBP',
+  formTypes: {
+    GL: 'UK_GL_FORM',
+    EO: 'UK_EO_FORM',
+  },
+  templates: {
+    UK_GL_FORM: 'templates/uk/gl-certificate.hbs',
+    UK_EO_FORM: 'templates/uk/eo-certificate.hbs',
+  },
+}
+```
+
+**Example: Adding BOP (Business Owner's Policy) LOB**
+```typescript
+// In mappingConfig.ts
+BOP: {
+  displayName: 'Business Owners Policy',
+  supportedGeographies: ['US', 'CA'],
+  coverageFields: {
+    propertyLimit: 'property_limit',
+    liabilityLimit: 'liability_limit',
+    deductible: 'deductible',
+  },
+  transformers: {
+    US: USBOPTransformer,
+    CA: CanadaBOPTransformer,
+  },
+}
+```
+
+**Example: Adding New Carrier (Lloyd's)**
+```typescript
+// In carrierConfig.ts
+LLOYDS: {
+  name: "Lloyd's of London",
+  code: 'LLOYDS',
+  address: {
+    street: 'One Lime Street',
+    city: 'London',
+    postalCode: 'EC3M 7HA',
+    country: 'UK',
+  },
+  contact: {
+    phone: '+44 20 7327 1000',
+    email: 'info@lloyds.com',
+  },
+  signature: {
+    path: 'signatures/lloyds-signature.png',
+    position: 'bottom-right',
+  },
+  geographies: ['UK', 'US', 'CA'],
+  lobs: ['GL', 'EO', 'BOP'],
+}
+```
+
+### Critical Requirements
+
+**DO:**
+- Port exact configuration values from old system
+- Use TypeScript interfaces for all config structures
+- Include comprehensive examples for extensibility
+- Show how configs integrate with ETL pipeline
+- Create validation schemas for configs
+- Document configuration hot-reload mechanism (even if not implemented yet)
+- No emojis in any documentation
+
+**DON'T:**
+- Hardcode business rules in code
+- Skip validation logic
+- Forget to show extensibility examples
+- Create configurations that require code changes to extend
+
+**Remember:**
+- Configuration is the foundation for business scalability
+- Every new geography/LOB/carrier should be a config-only change
+- Follow ETL design principles
+- Port proven values from production system
+
+---
+
+## Now: Work on Story 3
+
+**Your Task:**
+1. Read Story 3 in `COI_MIGRATION_EPIC.md`
+2. Follow the analysis steps in "Story 3 Specific Instructions" above
+3. Create `docs/story3-implementation.md` with complete configuration architecture
+4. Update Story 3 in epic to be concise (like Story 1 and Story 2)
+
+Good luck! Remember: **Configuration-driven for business extensibility.** 

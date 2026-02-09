@@ -17,8 +17,8 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 ## What Will Change in COI-MVP-ETL
 
 ### Files to DELETE (Remove MVP Fixtures)
-- ❌ **DELETE:** `/home/hestergong/Downloads/coi-mvp-etl/src/fixtures.mjs` (entire file - lines 1-153)
-- ❌ **DELETE:** `/home/hestergong/Downloads/coi-mvp-etl/src/generator/extract/fixtures.mjs` (if exists)
+- [REMOVE] **DELETE:** `/home/hestergong/Downloads/coi-mvp-etl/src/fixtures.mjs` (entire file - lines 1-153)
+- [REMOVE] **DELETE:** `/home/hestergong/Downloads/coi-mvp-etl/src/generator/extract/fixtures.mjs` (if exists)
 
 ### Files to CREATE (New Data Layer)
 ```
@@ -43,19 +43,19 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 ```
 
 ### Files to MODIFY (Update Extract Layer)
-- ✏️ **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/src/generator/extract/extract.mjs`
+- [MODIFY] **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/src/generator/extract/extract.mjs`
   - Rename to `extract.ts` (TypeScript)
   - Remove `getPolicyFromCollection` and `getCoveragesForLob` (fixture functions)
   - Replace with real MongoDB extraction using `PolicyDataExtractor`
   - Add `extractCanadaData()` and `extractUSData()` functions
 
-- ✏️ **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/src/index.mjs`
+- [MODIFY] **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/src/index.mjs`
   - Rename to `index.ts` (TypeScript)
   - Remove hardcoded test invocations (lines 30-80)
   - Add MongoDB client initialization
   - Pass MongoDB client to extract layer
 
-- ✏️ **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/package.json`
+- [MODIFY] **MODIFY:** `/home/hestergong/Downloads/coi-mvp-etl/package.json`
   - Add TypeScript dependencies
   - Add MongoDB driver
   - Add build scripts
@@ -746,7 +746,7 @@ export async function handler(evt: any) {
       const outPath = path.join(OUT_DIR, `COI_${evt.applicationId}_${lob}.pdf`);
       await fs.writeFile(outPath, pdfBytes);
 
-      console.log(`✅ COI generated: ${outPath}`);
+      console.log(`[DONE] COI generated: ${outPath}`);
     }
   } finally {
     await mongoClient.close();
@@ -822,19 +822,19 @@ export async function runPipeline(db, extractInput, config) {
 
 | Action | File | Description |
 |--------|------|-------------|
-| ❌ DELETE | `src/fixtures.mjs` | Remove MVP fixture data |
-| ❌ DELETE | `src/generator/extract/fixtures.mjs` | Remove duplicate fixtures |
-| ➕ CREATE | `tsconfig.json` | TypeScript configuration |
-| ➕ CREATE | `src/data/client/MongoDbClient.ts` | MongoDB connection wrapper |
-| ➕ CREATE | `src/data/types/PolicyView.ts` | TypeScript interfaces |
-| ➕ CREATE | `src/data/utils/generateNamedInsured.ts` | Port from old system |
-| ➕ CREATE | `src/data/utils/getPolicyIdByLineOfBusiness.ts` | Port from old system |
-| ➕ CREATE | `src/data/services/PolicyDataExtractor.ts` | Port findPolicyHead |
-| ➕ CREATE | `src/data/services/CertificateNumberService.ts` | Fix concurrency bug |
-| ✏️ REPLACE | `src/generator/extract/extract.mjs` → `extract.ts` | Real MongoDB extraction |
-| ✏️ REPLACE | `src/index.mjs` → `index.ts` | Add MongoDB initialization |
-| ✏️ MODIFY | `package.json` | Add TypeScript + MongoDB deps |
-| ✏️ MODIFY | `.env` | Add MONGODB_URI |
+| [REMOVE] DELETE | `src/fixtures.mjs` | Remove MVP fixture data |
+| [REMOVE] DELETE | `src/generator/extract/fixtures.mjs` | Remove duplicate fixtures |
+| [CREATE] CREATE | `tsconfig.json` | TypeScript configuration |
+| [CREATE] CREATE | `src/data/client/MongoDbClient.ts` | MongoDB connection wrapper |
+| [CREATE] CREATE | `src/data/types/PolicyView.ts` | TypeScript interfaces |
+| [CREATE] CREATE | `src/data/utils/generateNamedInsured.ts` | Port from old system |
+| [CREATE] CREATE | `src/data/utils/getPolicyIdByLineOfBusiness.ts` | Port from old system |
+| [CREATE] CREATE | `src/data/services/PolicyDataExtractor.ts` | Port findPolicyHead |
+| [CREATE] CREATE | `src/data/services/CertificateNumberService.ts` | Fix concurrency bug |
+| [MODIFY] REPLACE | `src/generator/extract/extract.mjs` → `extract.ts` | Real MongoDB extraction |
+| [MODIFY] REPLACE | `src/index.mjs` → `index.ts` | Add MongoDB initialization |
+| [MODIFY] MODIFY | `package.json` | Add TypeScript + MongoDB deps |
+| [MODIFY] MODIFY | `.env` | Add MONGODB_URI |
 
 ---
 

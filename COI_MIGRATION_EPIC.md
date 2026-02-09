@@ -1,8 +1,8 @@
 # EPIC: Build Production-Ready COI Generation Service (COI-MVP)
 
-## 🤖 For AI Agents
+## [AI Agents] For AI Agents
 
-**📋 START HERE:** [docs/AI_AGENT_INSTRUCTIONS.md](./docs/AI_AGENT_INSTRUCTIONS.md)
+**[Guide] START HERE:** [docs/AI_AGENT_INSTRUCTIONS.md](./docs/AI_AGENT_INSTRUCTIONS.md)
 
 This document contains:
 - How to approach each story
@@ -39,20 +39,20 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 
 ### What Already Exists in COI-MVP
 
-- ✅ ETL pipeline architecture (Extract → Transform → Map → Load)
-- ✅ US ACORD 25 PDF renderer (pdf-lib)
-- ✅ Canada HTML → PDF renderer (Browserless)
-- ✅ Config-driven LOB/geography/carrier selection
-- ✅ Canonical data model and field mappings
-- ✅ Fixture-based MVP data
+- [DONE] ETL pipeline architecture (Extract → Transform → Map → Load)
+- [DONE] US ACORD 25 PDF renderer (pdf-lib)
+- [DONE] Canada HTML → PDF renderer (Browserless)
+- [DONE] Config-driven LOB/geography/carrier selection
+- [DONE] Canonical data model and field mappings
+- [DONE] Fixture-based MVP data
 
 ### Success Criteria
 
-- ✅ Standalone service with API/event interface
-- ✅ Feature parity with old system
-- ✅ General/configurable for new LOBs, geographies, carriers
-- ✅ Fully tested and production-ready
-- ✅ Deployed and ready to receive traffic
+- [DONE] Standalone service with API/event interface
+- [DONE] Feature parity with old system
+- [DONE] General/configurable for new LOBs, geographies, carriers
+- [DONE] Fully tested and production-ready
+- [DONE] Deployed and ready to receive traffic
 
 ---
 
@@ -70,17 +70,17 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 
 **IMPORTANT:** This story focuses on **PORTING existing code**, not writing new code from scratch.
 
-**📋 Implementation Guide:** [docs/story1-implementation.md](./docs/story1-implementation.md)
+**[Guide] Implementation Guide:** [docs/story1-implementation.md](./docs/story1-implementation.md)
 
 ### Scope
 
 **Remove:**
-- ❌ `src/fixtures.mjs` - MVP fixture data (entire file)
-- ❌ `src/generator/extract/fixtures.mjs` - Duplicate fixtures
+- [REMOVE] `src/fixtures.mjs` - MVP fixture data (entire file)
+- [REMOVE] `src/generator/extract/fixtures.mjs` - Duplicate fixtures
 
 **Create:**
-- ➕ TypeScript setup (`tsconfig.json`, update `package.json`)
-- ➕ `src/data/` - New data layer with ported functions
+- [CREATE] TypeScript setup (`tsconfig.json`, update `package.json`)
+- [CREATE] `src/data/` - New data layer with ported functions
   - `client/MongoDbClient.ts` - MongoDB connection wrapper
   - `types/PolicyView.ts` - TypeScript interfaces
   - `utils/generateNamedInsured.ts` - Port from old system
@@ -92,8 +92,8 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
   - `services/CarrierInfoService.ts` - Port carrier lookup
 
 **Modify:**
-- ✏️ `src/generator/extract/extract.mjs` → `extract.ts` - Replace fixtures with real MongoDB
-- ✏️ `src/index.mjs` → `index.ts` - Add MongoDB initialization
+- [MODIFY] `src/generator/extract/extract.mjs` → `extract.ts` - Replace fixtures with real MongoDB
+- [MODIFY] `src/index.mjs` → `index.ts` - Add MongoDB initialization
 
 ### Acceptance Criteria
 
@@ -146,69 +146,67 @@ index.ts → MongoDbClient → extract.ts → PolicyDataExtractor.findPolicyHead
 
 ### Description
 
-Enhance [src/generator/transform/transform.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/transform/transform.mjs) to handle real production data structures for both US and Canada. Make transformations general and configurable for future LOBs.
+Port existing, proven transformation logic from foxden-policy-document-backend to coi-mvp-etl. Replace generic transform.mjs with geography-specific transformations that handle Canada GL/EO/optional coverages and US insured block formatting.
 
-**NOTE:** This story uses helper functions ported in Story 1 (`generateNamedInsured`, `getProfessionNameList`). The extracted data from Story 1 flows into this transform layer.
+**IMPORTANT:** This story focuses on **PORTING existing code**, not writing new code from scratch. Copy transformation logic from old system with minimal changes.
 
-### What Already Exists
+**[Guide] Implementation Guide:** [docs/story2-implementation.md](./docs/story2-implementation.md)
 
-- ✅ [src/generator/transform/transform.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/transform/transform.mjs) - Basic canonical model builder
-- ✅ `buildCanonical()` function with basic field normalization
-- ✅ Address formatting utilities (`addressLine`, `insuredBlock`)
+### Scope
+
+**Remove:**
+- [REMOVE] `src/generator/transform/transform.mjs` - Generic MVP transformer (entire file)
+
+**Create:**
+- [CREATE] `src/generator/transform/transform.ts` - Production transformation with geography routing
+- [CREATE] `src/generator/transform/types.ts` - TypeScript interfaces for canonical model
+- [CREATE] `src/generator/load/canada/helpers.ts` - Handlebars helpers (formatCurrency, formatDate, toLongProvinceName)
+
+**Modify:**
+- [MODIFY] `src/generator/pipeline/runPipeline.mjs` → `runPipeline.ts` - Use new transform function
+- [MODIFY] `src/generator/map/map.mjs` → `map.ts` - Handle new canonical structure
+- [MODIFY] `src/generator/load/canada/htmlGenerator.mjs` → `htmlGenerator.ts` - Use new helpers
 
 ### Acceptance Criteria
 
-- [ ] Enhance `buildCanonical()` for US GL/EO coverage:
-  - Extract limits from `UsCommonRatingInput`: `occurrenceLimit`, `premisesRentedToYouLimit`, `medicalPaymentsLimit`, `aggregateLimit`
-  - Use quote dates (`policyEffectiveDate`, `policyExpirationDate`) not policy dates
-  - Extract LOB-specific policy numbers using `getPolicyIdByLineOfBusiness()`
-  - Build insured block format: `"Name\nStreet\nCity, State, Zip"`
-- [ ] Enhance `buildCanonical()` for Canada GL coverage:
-  - Build structured `gl` object: `generalAggregate`, `eachOccurrence`, `productAndCompletedOperationsAggregate`, `personalAndAdvertisingInjuryLiability`, `medicalPayments`, `tenantLegalLiability`
-  - Each coverage with `{ amount, deductible }` structure
-  - Add optional `pollutionLiabilityExtension` based on `limitedPollutionLiability` boolean flag
-- [ ] Add Canada EO coverage extraction:
-  - Check `miscellaneousEO` boolean flag
-  - If true, build `eo` object: `{ deductible, aggregateAmount, occurrenceAmount }`
-- [ ] Add Canada optional coverages ("others" array):
-  - Unmanned aircraft coverage (if `limitedCoverageForUnmannedAircraft === true`)
-  - Build array: `[{ name: 'Unmanned aircraft', limit: { amount, deductible } }]`
-- [ ] Create transformation utilities:
-  - **ALREADY PORTED IN STORY 1:** Use `generateNamedInsured(businessName, dbaName)` from `src/data/utils/generateNamedInsured.js`
-  - `formatInsuredBlock(name, address)` - format US insured block (port from [sendUsCertificateOfInsurance.ts:108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L108))
-  - `extractLimitsFromRating(ratingInput, lob)` - generic limit extraction
-  - `buildCoverageStructure(ratingInput, geography)` - geography-specific coverage builder
-- [ ] Handle numeric string conversions:
-  - Canada sends numbers as strings - convert to proper number types
-  - Validate numeric ranges
-- [ ] Make transformations data-driven:
-  - Coverage field mappings in config (not hardcoded in transform)
-  - Support for new LOBs without code changes
-  - Geography-specific transformation plugins (strategy pattern)
-- [ ] Add validation layer:
-  - Required field validation
-  - Type checking (dates, numbers, strings)
-  - Range validation for limits and dates
-- [ ] Update `canonical` structure to support both US and Canada:
-  - US: simple flat limits object
-  - Canada: nested coverage structure `{ gl: {...}, eo?: {...}, others: [...] }`
-- [ ] Add `canonical.insurer` field with insurance company name
-- [ ] Add comprehensive unit tests for all transformation scenarios
-- [ ] Document canonical model schema (JSON Schema or TypeScript types)
+- [ ] **Port Canada transformation logic** from [sendCertificateOfInsurance.ts:90-209](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L90-L209):
+  - String-to-number conversion (Canada sends `"5000000"` as string)
+  - Build structured GL coverage: 6 main coverages + optional pollution extension
+  - Conditionally build EO coverage (if `miscellaneousEO` flag is true)
+  - Build "others" array for optional coverages (unmanned aircraft)
+  - Use `generateNamedInsured()` from Story 1
+- [ ] **Port US transformation logic** from [sendUsCertificateOfInsurance.ts:107-122](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L107-L122):
+  - Format insured block as multi-line string: `"Name\nStreet\nCity, State, Zip"`
+  - Join profession list with commas
+  - Extract flat limits structure from rating input
+  - Use quote dates (policyEffectiveDate/policyExpirationDate), NOT policy dates
+- [ ] **Port Canada HTML helpers** from [generate.ts:86-117](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/generate.ts#L86-L117):
+  - `formatCurrency()` - CAD formatting
+  - `formatDate()` - yyyy/MM/dd format
+  - `toLongProvinceName()` - ON → Ontario
+- [ ] **Create canonical model structure** with TypeScript interfaces:
+  - Geography-agnostic base fields (namedInsured, dates, addresses)
+  - Canada-specific: `canada.coverages` (gl, eo?, others)
+  - US-specific: `us.insuredBlock`, `us.limits`, `us.certificateNumber`
+- [ ] **Update pipeline integration** - Pass canonical model through map → load stages
+- [ ] **Unit tests** - Test all transformation scenarios (Canada GL, Canada EO, US, optional coverages)
+- [ ] **Regression tests** - Compare output with old system using production data
 
 ### Technical Notes
 
-- Canonical model should be LOB/geography agnostic
-- Transformations should be pluggable using strategy pattern
-- Consider using JSON Schema for validation
-- **US Structure:** Simple flat limits, insured as text block
-- **Canada Structure:** Nested coverage objects, structured address
-- **Boolean Flags (Canada):** `limitedPollutionLiability`, `limitedCoverageForUnmannedAircraft`, `miscellaneousEO`
+**Porting Approach:**
+- Copy Canada GL/EO/others building logic **exactly as-is** (lines 90-203 - it's tested in production)
+- Copy US insured block formatting **exactly as-is** (line 108 - one line)
+- Only changes: TypeScript types, use extracted data from Story 1
 
-### Reference Files (Do Not Modify)
+**Data Flow:**
+```
+extract.ts → transform.ts (THIS STORY) → map.ts → loadPdf.ts
+```
 
-- [sendCertificateOfInsurance.ts:90-203](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L90-L203) - Canada coverage structure
-- [sendUsCertificateOfInsurance.ts:78-122](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L78-L122) - US limits extraction
+**Key Transformations:**
+- **Canada:** String → Number conversion, nested coverage objects, conditional EO
+- **US:** Multi-line insured block, flat limits, quote dates
 
 ### Dependencies
 
@@ -230,8 +228,8 @@ Enhance configuration system to be fully production-ready and general for future
 
 ### What Already Exists
 
-- ✅ [src/generator/config/coiConfig.local.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/coiConfig.local.mjs) - Basic COI_CONFIGS
-- ✅ [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
+- [DONE] [src/generator/config/coiConfig.local.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/coiConfig.local.mjs) - Basic COI_CONFIGS
+- [DONE] [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
 
 ### Acceptance Criteria
 
@@ -311,8 +309,8 @@ Build complete persistence layer for S3 uploads and COIRecord database writes. M
 
 ### What Already Exists
 
-- ✅ [src/index.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs) - Currently writes to `./out` directory
-- ✅ [src/generator/generateCOI.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/generateCOI.mjs) - Returns PDF bytes
+- [DONE] [src/index.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs) - Currently writes to `./out` directory
+- [DONE] [src/generator/generateCOI.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/generateCOI.mjs) - Returns PDF bytes
 
 ### Acceptance Criteria
 
@@ -413,7 +411,7 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
 
 ### What Already Exists
 
-- ✅ Console log placeholder in [src/index.mjs:26](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs#L26): `console.log('EMAIL SENT (log only): ${outPath}')`
+- [DONE] Console log placeholder in [src/index.mjs:26](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs#L26): `console.log('EMAIL SENT (log only): ${outPath}')`
 
 ### Acceptance Criteria
 
@@ -518,9 +516,9 @@ Build API and event interfaces for COI-MVP service. Support both synchronous (RE
 
 ### What Already Exists
 
-- ✅ [src/index.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs) - Demo handler with hardcoded invocations
-- ✅ [src/types.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/types.mjs) - `COIRequested` and `COILobGenerationCompleted` event constructors
-- ✅ `handler()` function that processes COI requests
+- [DONE] [src/index.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs) - Demo handler with hardcoded invocations
+- [DONE] [src/types.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/types.mjs) - `COIRequested` and `COILobGenerationCompleted` event constructors
+- [DONE] `handler()` function that processes COI requests
 
 ### Acceptance Criteria
 
@@ -693,8 +691,8 @@ Organize signature assets and implement carrier-specific signature selection log
 
 ### What Already Exists
 
-- ✅ [src/generator/load/acord25/pdfGenerator.mjs:174-182](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/load/acord25/pdfGenerator.mjs#L174-L182) - Signature loading code (hardcoded path)
-- ✅ [templates/signatures/](https://github.com/HesterGong/COI-MVP/tree/main/templates/signatures) directory (per README, but empty)
+- [DONE] [src/generator/load/acord25/pdfGenerator.mjs:174-182](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/load/acord25/pdfGenerator.mjs#L174-L182) - Signature loading code (hardcoded path)
+- [DONE] [templates/signatures/](https://github.com/HesterGong/COI-MVP/tree/main/templates/signatures) directory (per README, but empty)
 
 ### Acceptance Criteria
 
@@ -1530,16 +1528,16 @@ Final production readiness checks, comprehensive documentation, and service laun
 
 ### Key Principles
 
-✅ **DO NOT** modify [foxden-policy-document-backend](https://github.com/Foxquilt/foxden-policy-document-backend)
-✅ **REUSE proven code** from old system (port/copy existing functions, don't rewrite)
-✅ **Copy MongoDB aggregation logic** exactly as-is (it's tested and works in production)
-✅ **Port helper functions** directly (generateNamedInsured, getPolicyIdByLineOfBusiness, etc.)
-✅ **Fix known bugs** during porting (e.g., certificate number concurrency issue)
-✅ Build [COI-MVP](https://github.com/HesterGong/COI-MVP) as standalone, general, configurable service
-✅ Support future business expansion (new LOBs, geographies, carriers)
-✅ Production-ready with proper monitoring and operations
-✅ Event-driven architecture for scalability
-✅ Configuration-driven (minimal code changes for new business)
+[DONE] **DO NOT** modify [foxden-policy-document-backend](https://github.com/Foxquilt/foxden-policy-document-backend)
+[DONE] **REUSE proven code** from old system (port/copy existing functions, don't rewrite)
+[DONE] **Copy MongoDB aggregation logic** exactly as-is (it's tested and works in production)
+[DONE] **Port helper functions** directly (generateNamedInsured, getPolicyIdByLineOfBusiness, etc.)
+[DONE] **Fix known bugs** during porting (e.g., certificate number concurrency issue)
+[DONE] Build [COI-MVP](https://github.com/HesterGong/COI-MVP) as standalone, general, configurable service
+[DONE] Support future business expansion (new LOBs, geographies, carriers)
+[DONE] Production-ready with proper monitoring and operations
+[DONE] Event-driven architecture for scalability
+[DONE] Configuration-driven (minimal code changes for new business)
 
 ### Success Metrics
 
