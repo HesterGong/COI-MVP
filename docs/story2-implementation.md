@@ -428,7 +428,7 @@ export interface Insured {
  * This model is consumed by:
  * - Map layer (applies field mappings)
  * - Load layer (generates PDFs)
- * - Persistence layer (stores to S3/DB)
+ * - Persistence layer (deferred in MVP)
  */
 export interface CanonicalCOI {
   // Universal identifiers
@@ -1239,7 +1239,6 @@ To add new carrier:
 
 **Used by:**
 - **Story 3 (Configuration)** - Uses transformConfig.ts
-- **Story 4 (Persistence)** - Uses canonical model for S3/DB operations
 - **Story 5 (Email)** - Uses canonical data for email generation
 
 ---
@@ -1667,7 +1666,6 @@ After completing this story:
 4. US insured block formatting will match old system
 5. Configuration-driven approach ready for business expansion
 6. Ready for Story 3 (Configuration enhancement)
-7. Ready for Story 4 (Persistence - uses canonical model)
 
 ---
 

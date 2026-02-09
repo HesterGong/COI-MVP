@@ -278,7 +278,6 @@ Follow the same pattern:
 4. Implement following the guide
 
 **Story 3: Configuration** - Port form configs, carrier configs
-**Story 4: Persistence** - S3 upload, COIRecord database writes (uses Story 1 helpers)
 **Story 5: Email** - Email delivery service
 **Story 6: API/Events** - Lambda handler, event interface
 **Story 7: Signatures** - Copy signature images, carrier-based selection
@@ -566,3 +565,6 @@ LLOYDS: {
 4. Update Story 3 in epic to be concise (like Story 1 and Story 2)
 
 Good luck! Remember: **Configuration-driven for business extensibility.** 
+
+---
+

@@ -223,186 +223,41 @@ extract.ts → transform.ts (THIS STORY) → map.ts → loadPdf.ts
 **Epic:** COI-2024
 
 ### Description
+Centralize configuration into strictly-typed TypeScript modules so new geographies, LOBs, and carriers can be added without code changes. Move existing hardcoded values into `src/config/` and validate at startup.
 
-Enhance configuration system to be fully production-ready and general for future business. Move configurations out of code into external config files.
+See implementation guide: [docs/story3-implementation.md](docs/story3-implementation.md)
 
-### What Already Exists
+### Scope
 
-- [DONE] [src/generator/config/coiConfig.local.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/coiConfig.local.mjs) - Basic COI_CONFIGS
-- [DONE] [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
+- Create `src/config/` with: `forms/`, `carriers/`, `mappings/`, `professions/`, `validation/`, and `index.ts` loader
+- Reference existing US ACORD 25 configs for StateNational and Munich from `src/generator/config/form-configs/`
+- Add carrier metadata (signature paths, geographies/LOBs) and insurer display name for Canada (Lloyd's)
+- Define mapping config for CA GL/EO and US GL; include BOP example for extensibility
+- Add minimal validation and outline hot-reload + optional admin endpoints (`GET /api/config`, `POST /api/config/reload`)
+ - Include signature assets management as config: signature filenames/paths per carrier under `templates/signatures/`; load layer consumes signaturePath from config with a safe fallback
 
 ### Acceptance Criteria
 
-- [ ] Create organized `config/` directory structure:
-  - `config/lobs/` - LOB-specific configs (GL.json, EO.json, BOP.json, etc.)
-  - `config/geographies/` - Geography-specific configs (US.json, CA.json)
-  - `config/carriers/` - Carrier-specific configs (StateNational.json, Munich.json, etc.)
-  - `config/templates/` - Template metadata and mappings
-- [ ] Enhance COI config structure in [coiConfig.local.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/config/coiConfig.local.mjs):
-  - Add all missing field mappings:
-    - US: `recipientEmail`, `dateNow`, `usEmail`, `usPhoneNumber`, `insuranceCompany`
-    - Canada: `dateNow`, `recipientEmail`, verify `insuranceCompany`
-  - Add Munich carrier configurations for GL and EO
-  - Make configs easily extensible for new LOBs/geographies/carriers
-- [ ] Copy Munich form config:
-  - Copy [UScoiFormsConfigs-Munich.json](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/configs/UScoiFormsConfigs-Munich.json) to COI-MVP
-  - Place in `src/generator/config/form-configs/UScoiFormsConfigs-Munich.json`
-  - Reference in Munich carrier configs
-- [ ] Create config validation:
-  - JSON Schema for all config file types
-  - Startup validation (fail fast if config invalid)
-  - Config version management and compatibility checks
-- [ ] Create `ConfigLoader` service:
-  - Load configs from files or S3/remote config store
-  - Support config hot-reloading (without service restart)
-  - Config caching with TTL
-  - Environment-specific config overrides
-- [ ] Organize form configs by carrier:
-  - `config/form-configs/StateNational-GL.json`
-  - `config/form-configs/StateNational-EO.json`
-  - `config/form-configs/Munich-GL.json`
-  - `config/form-configs/Munich-EO.json`
-  - Support form config versioning
-- [ ] Create configuration documentation:
-  - Config schema reference
-  - How to add new LOB (step-by-step guide)
-  - How to add new geography
-  - How to add new carrier
-  - Field mapping reference
-- [ ] Add config API endpoint (for debugging/admin):
-  - `GET /api/config` - View active configuration
-  - `POST /api/config/reload` - Reload configuration
-  - Require admin authentication
-
-### Technical Notes
-
-- Configs should be declarative (minimal/no code changes for new LOBs)
-- Consider using AWS AppConfig or similar for remote config management
-- Config changes should not require deployment (hot reload)
-- System defaults: `usEmail: "support@foxquilt.com"`, `usPhoneNumber: "(888) 555-0100"`
-- US forms differ by carrier (StateNational vs Munich) - different PDF field names
-
-### Reference Files (Do Not Modify)
-
-- [UScoiFormsConfigs-Munich.json](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/configs/UScoiFormsConfigs-Munich.json)
-- [generate.ts:92-100](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/generate.ts#L92-L100) - System field injection
+- Config-only extensibility: add UK/AU/BOP/Lloyd's without code changes
+- Strict TypeScript interfaces and validation; startup fails fast on invalid config
+- US ACORD 25 forms load via config; carrier selection drives signature embedding
+- Canada currency/date formats (`CAD`, `yyyy/MM/dd`) and province resolver are configurable via config
+- MappingConfig drives transformers (CA GL/EO, US GL); BOP example present
+- Profession mapper loads CSV for name conversion and is accessible to Transform/Map/Load layers
+- Documentation present: [docs/story3-implementation.md](docs/story3-implementation.md)
+ - US signature embedding is driven purely by carrier config; assets exist in `templates/signatures/` with a generic fallback; missing assets do not break generation (logged and continue)
 
 ### Dependencies
 
 - **Depends on:** Story 2 (Transform Layer)
 
 ---
-
-## Story 4: Persistence Layer (S3 & Database)
+## Story 4: Email & Delivery Service
 
 **Story ID:** COI-4
 **Priority:** High
-**Story Points:** 10
-**Phase:** 4 - Persistence
-**Epic:** COI-2024
-
-### Description
-
-Build complete persistence layer for S3 uploads and COIRecord database writes. Make it general and reusable for all LOBs and geographies.
-
-**NOTE:** This story uses helper functions ported in Story 1 (`getLatestActivePolicy`, `getCarrierFromPolicy`) for fetching policy metadata needed for S3/DB operations.
-
-### What Already Exists
-
-- [DONE] [src/index.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/index.mjs) - Currently writes to `./out` directory
-- [DONE] [src/generator/generateCOI.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/generateCOI.mjs) - Returns PDF bytes
-
-### Acceptance Criteria
-
-- [ ] Create `src/persistence/` directory structure
-- [ ] Create `S3StorageService`:
-  - Upload PDF files to S3 using `@aws-sdk/client-s3`
-  - Integrate `InsuranceDocumentManager` from `@foxden/shared-lib`
-  - Generate proper filenames:
-    - US format: `{policyNumber}|{certificateNumber}|{timestamp}.pdf`
-    - Canada format: `{policyFoxdenId}|{additionalInsuredName}|{timestamp}.pdf`
-  - Store document metadata:
-    - documentType: `InsuranceDocumentDocumentType.Certificate`
-    - transactionType: `InsuranceDocumentTransactionType.Certificate`
-    - bucket: `COI_S3_BUCKETNAME` (from environment)
-    - carrier, policyNumber, policyObjectId, applicationId, carrierPartner
-  - Handle upload failures with exponential backoff retry
-  - Support multiple S3 buckets (configurable per environment)
-  - Return S3 response: `{ ETag, Location, Bucket, Key }`
-- [ ] Create `COIRecordService`:
-  - Write COIRecord documents to MongoDB
-  - Use `generateDBObject(DocumentName.COIRecord, 6, 'generateCOI', data)` helper
-  - Store fields:
-    - `additionalInsured` (Canada) or `certificateHolder` (US)
-    - `policyFoxdenId`
-    - `s3Response` (ETag, Location, Bucket, Key)
-    - `carrierPartner`
-  - Version: 6 (current production format)
-  - Handle write failures with retry
-  - Support MongoDB transactions
-- [ ] Create `PersistenceOrchestrator`:
-  - Coordinate S3 upload + database write operations
-  - Execute in order:
-    1. Upload PDF to S3
-    2. Write COIRecord to database
-    3. Return success/failure status
-  - Handle partial failures:
-    - If S3 fails: return error, don't write to database
-    - If database fails: S3 already uploaded, log warning, return partial success
-  - Implement configurable rollback strategy
-  - Add idempotency support (don't duplicate if retried)
-  - Use idempotency key: `{policyFoxdenId}-{lob}-{additionalInsuredName}-{timestamp}`
-- [ ] Use ported metadata helper services from Story 1:
-  - **ALREADY PORTED IN STORY 1:** Use `CarrierInfoService.getCarrierFromPolicy(policy)` from `src/data/services/CarrierInfoService.js`
-  - **ALREADY PORTED IN STORY 1:** Use `PolicyMetadataService.getLatestActivePolicy(policyFoxdenId)` from `src/data/services/PolicyMetadataService.js` to fetch `_id` and `application._id`
-- [ ] Make persistence layer pluggable:
-  - `StorageInterface` - could swap S3 for Azure Blob, GCS, etc.
-  - `DatabaseInterface` - could use different database
-  - Dependency injection pattern
-- [ ] Add comprehensive error handling:
-  - Network failures
-  - Authentication failures
-  - Quota/rate limit errors
-  - Timeout errors
-- [ ] Add structured logging:
-  - Log context: `{ applicationId, policyFoxdenId, lob, s3Key, operation, duration }`
-  - Log S3 upload start/success/failure
-  - Log database write start/success/failure
-- [ ] Add integration tests:
-  - Use LocalStack for S3 testing
-  - Use test MongoDB instance
-  - Test retry logic
-  - Test partial failure scenarios
-- [ ] Add dependencies to package.json:
-  - `@foxden/shared-lib`
-  - `@aws-sdk/client-s3`
-
-### Technical Notes
-
-- Service should be LOB/geography agnostic
-- Consider event sourcing for audit trail
-- InsuranceDocumentManager requires MongoDB client and S3 client instances
-- Need to fetch policy again using `getLatestActivePolicy` to get ObjectId and application reference
-- Transaction boundaries: Decide if S3 should be rolled back on DB failure (currently: no rollback)
-
-### Reference Files (Do Not Modify)
-
-- [certificateOfInsurance/generate.ts:170-209](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/generate.ts#L170-L209) - Canada S3/DB
-- [UScertificateOfInsurance/generate.ts:189-227](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/generate.ts#L189-L227) - US S3/DB
-
-### Dependencies
-
-- **Depends on:** Story 1 (Data Layer)
-- **Can parallelize with:** Story 2, Story 3
-
----
-
-## Story 5: Email & Delivery Service
-
-**Story ID:** COI-5
-**Priority:** High
 **Story Points:** 8
-**Phase:** 5 - Delivery
+**Phase:** 4 - Delivery
 **Epic:** COI-2024
 
 ### Description
@@ -436,11 +291,10 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
   - Prepare for multiple languages (future: `coi-email-fr.html`)
   - Create template loading utility
 - [ ] Create `DeliveryOrchestrator`:
-  - Coordinate full delivery workflow:
+  - Coordinate full delivery workflow (MVP):
     1. Generate PDF (existing pipeline)
-    2. Store to S3 (Story 4)
-    3. Write to database (Story 4)
-    4. Deliver via email (new)
+    2. Deliver via email (current)
+  - Note: S3/database persistence is deferred in MVP.
   - Support multiple delivery channels (extensible):
     - Email delivery (current)
     - API webhook delivery (future)
@@ -484,8 +338,7 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
 
 - Same email template used for both US and Canada (currently)
 - Delivery should be decoupled from generation (could be async)
-- Old system doesn't rollback S3 if email fails - maintain same behavior
-- Email sent after S3 and DB operations complete (not before)
+- Email sent after PDF generation completes
 - Test mode should log email content instead of sending
 - Consider SQS-based async delivery for better reliability (future)
 
@@ -497,17 +350,16 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
 
 ### Dependencies
 
-- **Depends on:** Story 4 (Persistence Layer)
-- **Can parallelize with:** Story 6, Story 7
+- **Depends on:** None (MVP)
 
 ---
 
-## Story 6: Service API & Event Interface
+## Story 5: Service API & Event Interface
 
-**Story ID:** COI-6
+**Story ID:** COI-5
 **Priority:** High
 **Story Points:** 13
-**Phase:** 6 - Interface Layer
+**Phase:** 5 - Interface Layer
 **Epic:** COI-2024
 
 ### Description
@@ -672,128 +524,17 @@ Build API and event interfaces for COI-MVP service. Support both synchronous (RE
 
 ### Dependencies
 
-- **Depends on:** Story 4 (Persistence), Story 5 (Delivery)
+- **Depends on:** Story 5 (Delivery)
 - **Can parallelize with:** Story 7
 
 ---
 
-## Story 7: Signature Assets & Carrier Configuration
+## Story 6: Testing & Quality Assurance
 
-**Story ID:** COI-7
-**Priority:** Medium
-**Story Points:** 3
-**Phase:** 7 - Assets
-**Epic:** COI-2024
-
-### Description
-
-Organize signature assets and implement carrier-specific signature selection logic. Make it general for future carriers.
-
-### What Already Exists
-
-- [DONE] [src/generator/load/acord25/pdfGenerator.mjs:174-182](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/load/acord25/pdfGenerator.mjs#L174-L182) - Signature loading code (hardcoded path)
-- [DONE] [templates/signatures/](https://github.com/HesterGong/COI-MVP/tree/main/templates/signatures) directory (per README, but empty)
-
-### Acceptance Criteria
-
-- [ ] Copy signature images from reference repository:
-  - Copy StateNational signature → `templates/signatures/StateNationalPresidentSignature.png`
-  - Copy Munich signature → `templates/signatures/MunichUSSignature.png`
-  - Verify image quality and dimensions
-- [ ] Update [src/generator/load/acord25/pdfGenerator.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/load/acord25/pdfGenerator.mjs):
-  - Replace hardcoded signature path (line 174)
-  - Implement carrier-based signature selection:
-    ```javascript
-    const signatureFilename =
-      enrichedInput.carrierPartner === 'StateNational'
-        ? 'StateNationalPresidentSignature.png'
-        : enrichedInput.carrierPartner === 'Munich'
-        ? 'MunichUSSignature.png'
-        : 'signature.png'; // fallback
-    const signaturePath = path.resolve(`templates/signatures/${signatureFilename}`);
-    ```
-  - Handle missing signature files gracefully:
-    - Log warning if signature file not found
-    - Don't fail entire COI generation
-    - Continue without signature (or use generic fallback)
-- [ ] Add generic fallback signature:
-  - Create or copy generic signature image
-  - Use as fallback for unknown carriers
-- [ ] Create carrier configuration files:
-  - `config/carriers/StateNational.json`:
-    ```json
-    {
-      "name": "State National",
-      "signaturePath": "templates/signatures/StateNationalPresidentSignature.png",
-      "formsConfigPath": "src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json",
-      "branding": {
-        "logoPath": null,
-        "primaryColor": null
-      }
-    }
-    ```
-  - `config/carriers/Munich.json`:
-    ```json
-    {
-      "name": "Munich Re",
-      "signaturePath": "templates/signatures/MunichUSSignature.png",
-      "formsConfigPath": "src/generator/config/form-configs/UScoiFormsConfigs-Munich.json",
-      "branding": {
-        "logoPath": null,
-        "primaryColor": null
-      }
-    }
-    ```
-  - Make adding new carriers require only config file (no code changes)
-- [ ] Support carrier-specific branding (future extensibility):
-  - Logo images (for letterhead)
-  - Color schemes (for Canada HTML PDF)
-  - Footer text
-  - Prepare structure even if not used initially
-- [ ] Add signature quality validation:
-  - Validate image format (PNG)
-  - Validate dimensions (warn if too small/large)
-  - Validate file size (warn if too large)
-- [ ] Add logging for signature operations:
-  - Log signature loading success/failure
-  - Log which signature used for each carrier
-  - Log fallback usage
-- [ ] Test signature rendering:
-  - Generate US COI with StateNational carrier
-  - Generate US COI with Munich carrier
-  - Verify signatures appear correctly in PDFs
-  - Verify PDF is valid with signature
-- [ ] Create documentation:
-  - How to add new carrier signatures
-  - Signature image requirements (format, size, dimensions)
-  - Carrier configuration schema
-
-### Technical Notes
-
-- Signatures only used for US ACORD 25 forms (not Canada HTML PDFs)
-- Current code at line 174 tries to load `assets/signatures/signature.png` but directory doesn't exist
-- README mentions `templates/signatures/` but notes it's "not automatically used by US generator today"
-- Signature is added to PDF form button field: `US-Coi-signature`
-- Use pdf-lib `embedPng()` to add signature to PDF
-
-### Reference Files (Do Not Modify)
-
-- [UScertificateOfInsurance/generate.ts:164-170](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/generate.ts#L164-L170) - Signature selection logic
-- [StateNationalPresidentSignature.png](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/USpolicydocument/stateNational/StateNationalPresidentSignature.png)
-- [MunichUSSignature.png](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/USpolicydocument/munich/MunichUSSignature.png)
-
-### Dependencies
-
-- **Can parallelize with:** Any other story (independent)
-
----
-
-## Story 8: Testing & Quality Assurance
-
-**Story ID:** COI-8
+**Story ID:** COI-6
 **Priority:** High
 **Story Points:** 13
-**Phase:** 8 - Testing
+**Phase:** 6 - Testing
 **Epic:** COI-2024
 
 ### Description
@@ -859,11 +600,6 @@ Build comprehensive test suite for COI-MVP. Ensure feature parity with reference
   - Lodash.get path resolution
   - Missing field handling (should not throw)
   - Nested object mapping
-- [ ] **Persistence Layer Tests** (`src/persistence/`):
-  - S3StorageService: upload success, retry on failure, error handling
-  - COIRecordService: database writes, transaction handling
-  - PersistenceOrchestrator: full flow, partial failure scenarios
-  - Idempotency (duplicate requests)
 - [ ] **Delivery Layer Tests** (`src/delivery/`):
   - EmailService: email sending, test mode, retry logic
   - DeliveryOrchestrator: coordination logic
@@ -962,7 +698,6 @@ Build comprehensive test suite for COI-MVP. Ensure feature parity with reference
   - Transform layer: >90%
   - Map layer: >85%
   - Load layer: >75%
-  - Persistence layer: >80%
   - Delivery layer: >80%
   - Overall: >80%
 - [ ] Set up CI/CD to fail on coverage regression
@@ -983,12 +718,12 @@ Build comprehensive test suite for COI-MVP. Ensure feature parity with reference
 
 ---
 
-## Story 9: Production Deployment & Operations
+## Story 7: Production Deployment & Operations
 
-**Story ID:** COI-9
+**Story ID:** COI-7
 **Priority:** High
 **Story Points:** 13
-**Phase:** 9 - Production
+**Phase:** 7 - Production
 **Epic:** COI-2024
 
 ### Description
@@ -1273,12 +1008,12 @@ Deploy COI-MVP as production-ready service with monitoring, alerting, and operat
 
 ---
 
-## Story 10: Production Readiness & Documentation
+## Story 8: Production Readiness & Documentation
 
-**Story ID:** COI-10
+**Story ID:** COI-8
 **Priority:** High
 **Story Points:** 8
-**Phase:** 10 - Launch Prep
+**Phase:** 8 - Launch Prep
 **Epic:** COI-2024
 
 ### Description
@@ -1502,27 +1237,11 @@ Final production readiness checks, comprehensive documentation, and service laun
 ### Timeline & Resources
 
 **Total Estimated Timeline:** 10-12 weeks (reduced due to code reuse)
-**Total Story Points:** 93 (reduced from 102 due to porting approach)
-**Recommended Team Size:** 2-3 engineers
-
-### Phase Breakdown
-
-| Phase | Stories | Story Points | Duration | Dependencies |
-|-------|---------|--------------|----------|--------------|
-| **Phase 1:** Foundation | Story 1 | 8 pts | 1.5 weeks | None (porting existing code) |
-| **Phase 2:** Core Logic | Story 2 | 10 pts | 1.5 weeks | Story 1 |
-| **Phase 3:** Configuration | Story 3 | 5 pts | 1 week | Story 2 |
-| **Phase 4:** Persistence | Story 4 | 10 pts | 1.5 weeks | Story 1 (can parallelize with 2-3) |
-| **Phase 5:** Delivery | Story 5 | 8 pts | 1.5 weeks | Story 4 (can parallelize with 6-7) |
-| **Phase 6:** API/Events | Story 6 | 13 pts | 2 weeks | Stories 4, 5 |
-| **Phase 7:** Assets | Story 7 | 3 pts | 0.5 weeks | Independent (can parallelize) |
-| **Phase 8:** Testing | Story 8 | 13 pts | 2 weeks | All stories (ongoing throughout) |
-| **Phase 9:** Deployment | Story 9 | 13 pts | 2 weeks | Story 8 |
-| **Phase 10:** Launch Prep | Story 10 | 8 pts | 1 week | Story 9 |
+**Total Story Points:** 93
 
 ### Parallelization Opportunities
 
-- **Stories 4, 5, 6, 7** can be partially parallelized (different team members)
+- **Stories 5, 6, 7** can be partially parallelized (different team members)
 - **Story 8** (Testing) should be ongoing throughout all phases
 - **Story 7** (Signatures) is independent and can be done anytime
 
