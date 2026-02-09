@@ -883,3 +883,13 @@ yarn start
 ---
 
 This is the complete Story 1 with **specific file locations**, **TypeScript**, and **clear integration points**.
+
+---
+
+## Additional Notes (Alignment with Old System)
+
+- Port and use `isAddressType` (runtime guard) in `src/data/utils/address/isAddressType.ts` and enforce it in `extractCanadaData()` and `extractUSData()`.
+- Gate extraction by geography and quote type:
+  - Canada: `quoteData.rating.kind === 'Canada'`, only `QuoteKind.Original` supported.
+  - US: `quoteData.rating.kind !== 'Canada'`, only `QuoteKind.Original` supported; `policyData.kind` must be `Root` when deriving `policyNumber`.
+- Capture `recipientEmail`, `timeZone`, and apply `carrierPartner || defaultCarrierPartner` fallback when building inputs.

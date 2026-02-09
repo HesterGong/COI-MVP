@@ -19,8 +19,6 @@ This document contains:
 **Epic ID:** COI-2024
 **Priority:** High
 **Total Story Points:** 93
-**Estimated Timeline:** 10-12 weeks
-**Team Size:** 2-3 engineers
 
 ### Description
 
@@ -53,6 +51,133 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 - [DONE] General/configurable for new LOBs, geographies, carriers
 - [DONE] Fully tested and production-ready
 - [DONE] Deployed and ready to receive traffic
+
+### MVP Scope
+
+- Stories 0–3 define the MVP deliverable (TypeScript setup, Data Layer, Transform Layer, and Configuration Management). Story 4 (Email & Delivery) and beyond are post-MVP.
+
+---
+
+## Story 0: Project Preparation & TypeScript Setup
+
+**Story ID:** COI-0
+**Priority:** High
+**Story Points:** 8
+**Phase:** 0 - Preparation
+**Epic:** COI-2024
+
+### Description
+
+Prepare the project baseline to support all subsequent stories. Convert to TypeScript and refactor the current code/layout into a clean, maintainable structure that aligns with the planned ETL, config, and future delivery/API work. Establish tooling (lint, test, build), environment management, and conventions so later stories plug in without churn.
+
+### Scope
+
+- Define and create the final project folder structure (see below).
+- Convert `.mjs` to `.ts` (ESM-compatible) and move files to their new homes.
+- Add TypeScript configuration (`tsconfig.json`) with strict typing and path aliases.
+- Add developer tooling: ESLint, Prettier, Jest (ts-jest), and basic CI-ready scripts.
+- Update `package.json` scripts for build, test, lint, format, and run.
+- Introduce environment management: `.env`, `.env.example` with required vars.
+- Keep current functionality working during refactor (temporary adapters if needed).
+
+### Final Project Structure (planned)
+
+```
+coi-mvp-etl/
+  src/
+    api/                  # Story 5+ (placeholder)
+    config/               # Story 3: forms, carriers, mappings, validation
+      forms/
+      carriers/
+      mappings/
+      professions/
+      validation/
+      index.ts
+    data/                 # Story 1: data layer
+      client/MongoDbClient.ts
+      services/
+        PolicyDataExtractor.ts
+        CertificateNumberService.ts
+        ProfessionLookupService.ts
+        PolicyMetadataService.ts
+        CarrierInfoService.ts
+      utils/
+        generateNamedInsured.ts
+        getPolicyIdByLineOfBusiness.ts
+        address/isAddressType.ts
+      types/PolicyView.ts
+    generator/
+      extract/extract.ts
+      transform/transform.ts
+      transform/types.ts
+      map/map.ts
+      load/
+        canada/
+          htmlGenerator.ts
+          helpers.ts
+        acord25/
+          pdfGenerator.ts
+        utils/
+          formatters.ts
+      pipeline/runPipeline.ts
+      generateCOI.ts
+    delivery/             # Story 4+ (placeholder)
+      EmailService.ts
+      DeliveryOrchestrator.ts
+      templates/
+        coi-email-en.html
+    templates/
+      acord25/
+      html/
+        template.handlebars
+      signatures/
+    index.ts
+    types.ts
+  docs/
+    AI_AGENT_INSTRUCTIONS.md
+    story1-implementation.md
+    story2-implementation.md
+    story3-implementation.md
+  tsconfig.json
+  jest.config.ts
+  .eslintrc.cjs
+  .prettierrc
+  .env.example
+```
+
+### Refactor Mapping (old → new)
+
+- `src/index.mjs` → `src/index.ts`
+- `src/types.mjs` → `src/types.ts`
+- `src/fixtures.mjs` → removed (Story 1 adds real data layer)
+- `src/generator/extract/fixtures.mjs` → removed
+- `src/generator/extract/extract.mjs` → `src/generator/extract/extract.ts`
+- `src/generator/transform/transform.mjs` → `src/generator/transform/transform.ts`
+- `src/generator/map/map.mjs` → `src/generator/map/map.ts`
+- `src/generator/load/html/helpers.mjs` → `src/generator/load/canada/helpers.ts`
+- `src/generator/load/html/…` → `src/generator/load/canada/…`
+- `src/generator/load/acord25/pdfGenerator.mjs` → `src/generator/load/acord25/pdfGenerator.ts`
+- `src/generator/pipeline/runPipeline.mjs` → `src/generator/pipeline/runPipeline.ts`
+
+### Acceptance Criteria
+
+- [ ] TypeScript enabled with strict mode, ESM target, and path aliases.
+- [ ] Project folder structure created as above; placeholders added for future stories (delivery/api) but not wired yet.
+- [ ] Core files converted to `.ts` and relocated per the mapping.
+- [ ] Basic tooling in place: ESLint (TypeScript), Prettier, Jest with `ts-jest`.
+- [ ] `package.json` scripts:
+  - `build` (tsc), `dev` (ts-node or nodemon + ts-node), `test`, `lint`, `format`.
+- [ ] Environment scaffolding: `.env.example` and config loader reading `MONGODB_URI`.
+- [ ] Temporary adapters or re-export shims added if needed to keep existing import paths compiling during transition.
+- [ ] CI-ready defaults (no failing lint/tests on fresh clone).
+
+### Technical Notes
+
+- Use Node.js 20, `module` type ESM in `package.json`.
+- `tsconfig.json`: `target: ES2022`, `module: ES2022`, `moduleResolution: NodeNext`, `esModuleInterop: true`, `resolveJsonModule: true`.
+- Path aliases example: `"paths": { "@data/*": ["src/data/*"], "@generator/*": ["src/generator/*"] }`.
+- Keep Browserless/PDF renderers unchanged; only relocate/import.
+- Do not introduce business logic changes in Story 0; focus on structure and tooling.
 
 ---
 
@@ -98,18 +223,25 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 ### Acceptance Criteria
 
 - [ ] **Setup TypeScript** - Add tsconfig.json, update package.json with TypeScript + MongoDB dependencies
-- [ ] **Port 6 core functions** from old system (workspace references below):
+- [ ] **Port core functions** from old system (workspace references below):
   - `findPolicyHead` → `PolicyDataExtractor.ts` (copy aggregation exactly) — source: [foxden-policy-document-backend/src/services/utils/findPolicyHead.ts](foxden-policy-document-backend/src/services/utils/findPolicyHead.ts)
   - `generateNamedInsured` → `generateNamedInsured.ts` — source: [foxden-policy-document-backend/src/utils/generateNamedInsured.ts](foxden-policy-document-backend/src/utils/generateNamedInsured.ts)
   - `getPolicyIdByLineOfBusiness` → `getPolicyIdByLineOfBusiness.ts` — source: [foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts](foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts)
   - `getLatestActivePolicy` → `PolicyMetadataService.ts` — source: [foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts](foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts)
   - `getCarrierFromPolicy` → `CarrierInfoService.ts` — source: [foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts](foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts)
   - `getProfessionNameList` → `ProfessionLookupService.ts` — source: [foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts)
+  - `isAddressType` → `address/isAddressType.ts` — source: [foxden-policy-document-backend/src/utils/address/isAddressType.ts](foxden-policy-document-backend/src/utils/address/isAddressType.ts)
 - [ ] **Create CertificateNumberService** - Fix concurrency bug in old system (atomic `findOneAndUpdate` instead of `countDocuments`)
 - [ ] **Create MongoDbClient** - Connection wrapper with pooling and retry logic
 - [ ] **Update extract layer** - Replace fixture logic with real MongoDB extraction:
   - `extractCanadaData()` — port the data selection/destructuring portions from [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
   - `extractUSData()` — port the data selection/destructuring portions from [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
+  - Canada fields: use `BusinessInformation_100_MailingAddress_WORLD_EN` for address, `BusinessInformation_100_Profession_WORLD_EN` for profession (array or string → array)
+  - US fields: use `BusinessInformation_100_BusinessAddress_WORLD_EN` for address, `professionLabelList` for profession
+  - Apply runtime type guard `isAddressType()` to all addresses (Canada and US)
+  - Enforce `QuoteKind.Original` only; gate by geography: Canada vs US rating kinds
+  - Capture `recipientEmail` and `timeZone` from `applicationAnswers.data` for downstream delivery and formatting
+  - Use `carrierPartner || defaultCarrierPartner` when building inputs (match old system fallback behavior)
 - [ ] **Environment config** - Add `.env` with `MONGODB_URI`
 - [ ] **Unit tests** - Test all ported functions
 - [ ] **Integration tests** - Test full extraction flow with MongoDB
@@ -129,6 +261,11 @@ index.ts → MongoDbClient → extract.ts → PolicyDataExtractor.findPolicyHead
 **Certificate Number Bug Fix:**
 - Old: `countDocuments()` (race condition in certificate numbering; see US implementation) — refer to [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
 - New: Implement atomic counter via `findOneAndUpdate({ $inc })` in `CertificateNumberService`
+
+**Geography & Quote Guardrails:**
+- Only process `QuoteKind.Original` quotes; reject others (matches old system)
+- For Canada, ensure `quoteData.rating.kind === 'Canada'`; for US, ensure `quoteData.rating.kind !== 'Canada'`
+- For US, `policyData.kind` must be `Root` before deriving `policyNumber` via `getPolicyIdByLineOfBusiness(PolicyKind.GL)`
 
 ### Dependencies
 
@@ -175,11 +312,14 @@ Port existing, proven transformation logic from foxden-policy-document-backend t
   - Conditionally build EO coverage (if `miscellaneousEO` flag is true)
   - Build "others" array for optional coverages (unmanned aircraft)
   - Use `generateNamedInsured()` from Story 1
+  - Include `insuranceCompany` (from config; default Lloyd's) and honor `carrierPartner || defaultCarrierPartner`
 - [ ] **Port US transformation logic** from [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts):
   - Format insured block as multi-line string: `"Name\nStreet\nCity, State, Zip"`
   - Join profession list with commas
   - Extract flat limits structure from rating input
   - Use quote dates (policyEffectiveDate/policyExpirationDate), NOT policy dates
+  - Derive `policyNumber` via `getPolicyIdByLineOfBusiness(PolicyKind.GL)` only when `policyData.kind` is `Root`
+  - Carry `timeZone` and `recipientEmail` through canonical model for Delivery
 - [ ] **Port Canada HTML helpers** from [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts):
   - `formatCurrency()` - CAD formatting
   - `formatDate()` - yyyy/MM/dd format
@@ -230,23 +370,26 @@ See implementation guide: [docs/story3-implementation.md](docs/story3-implementa
 
 ### Scope
 
-- Create `src/config/` with: `forms/`, `carriers/`, `mappings/`, `professions/`, `validation/`, and `index.ts` loader
-- Reference existing US ACORD 25 configs for StateNational and Munich from `src/generator/config/form-configs/`
-- Add carrier metadata (signature paths, geographies/LOBs) and insurer display name for Canada (Lloyd's)
-- Define mapping config for CA GL/EO and US GL; include BOP example for extensibility
-- Add minimal validation and outline hot-reload + optional admin endpoints (`GET /api/config`, `POST /api/config/reload`)
- - Include signature assets management as config: signature filenames/paths per carrier under `templates/signatures/`; load layer consumes signaturePath from config with a safe fallback
+- Consolidate configuration under a single `src/config/` with minimal subfolders:
+  - `src/config/index.ts` — central typed loader exporting `COI_CONFIG`
+  - `src/config/forms/` — US ACORD 25 JSON form configs (copy from current `src/generator/config/form-configs/`), future geographies can add here
+  - `src/config/carriers.ts` — carrier metadata (signature assets, display names, supported geographies/LOBs)
+  - `src/config/mappings.ts` — mapping config for CA GL/EO and US GL; keep BOP example for extensibility
+  - `src/config/types.ts` — TypeScript interfaces for the config shape
+- Move profession name lookups to Data Layer (`src/data/services/ProfessionLookupService.ts`) instead of a config folder.
+- Runtime validation can be minimal (TypeScript + basic runtime checks); defer heavy validation and hot-reload endpoints to post-MVP.
+- Signature assets remain under `templates/signatures/`; config references file paths, and load layer uses safe fallbacks when assets are missing.
 
 ### Acceptance Criteria
 
-- Config-only extensibility: add UK/AU/BOP/Lloyd's without code changes
-- Strict TypeScript interfaces and validation; startup fails fast on invalid config
-- US ACORD 25 forms load via config; carrier selection drives signature embedding
-- Canada currency/date formats (`CAD`, `yyyy/MM/dd`) and province resolver are configurable via config
-- MappingConfig drives transformers (CA GL/EO, US GL); BOP example present
-- Profession mapper loads CSV for name conversion and is accessible to Transform/Map/Load layers
+- Config extensibility with fewer folders: add UK/AU/BOP/Lloyd's without code changes
+- Strict TypeScript interfaces; basic runtime checks (heavy validation and hot-reload endpoints are post-MVP)
+- US ACORD 25 forms load via `src/config/forms/`; carrier selection drives signature embedding
+- Canada formats (`CAD`, `yyyy/MM/dd`) and province resolver configurable via `src/config`
+- `MappingConfig` drives transformers (CA GL/EO, US GL); BOP example present
+- Profession mapper available via Data Layer (`ProfessionLookupService`) for Transform/Map/Load
 - Documentation present: [docs/story3-implementation.md](docs/story3-implementation.md)
- - US signature embedding is driven purely by carrier config; assets exist in `templates/signatures/` with a generic fallback; missing assets do not break generation (logged and continue)
+ - US signature embedding driven by carrier config; assets in `templates/signatures/` with generic fallback; missing assets do not break generation (log and continue)
 
 ### Dependencies
 
@@ -351,7 +494,7 @@ Build standalone email delivery service for COI PDFs. Make it general and suppor
 
 ### Dependencies
 
-- **Depends on:** None (MVP)
+- **Depends on:** Stories 0–3 (Post-MVP)
 
 ---
 

@@ -73,7 +73,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Builds structured GL coverage object with 6 main coverages + optional pollution extension
 - Each coverage has `{ amount, deductible }` structure
 
-**Where to copy it:** `src/generator/transform/transformers/CanadaGLTransformer.ts`
+**Where to implement:** `src/generator/transform/transform.ts` (Canada GL section)
 
 **Changes needed:**
 - Convert to TypeScript
@@ -88,7 +88,7 @@ Enhance the transform layer to handle real production data structures for both U
 - If true, builds EO coverage object: `{ deductible, aggregateAmount, occurrenceAmount }`
 - If false, returns undefined
 
-**Where to copy it:** `src/generator/transform/transformers/CanadaEOTransformer.ts`
+**Where to implement:** `src/generator/transform/transform.ts` (Canada EO section)
 
 **Changes needed:**
 - Convert to TypeScript
@@ -102,7 +102,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Checks boolean flags to conditionally add coverages
 - Each coverage has `{ name, limit: { amount, deductible } }` structure
 
-**Where to copy it:** `src/generator/transform/transformers/CanadaOptionalCoveragesTransformer.ts`
+**Where to implement:** `src/generator/transform/transform.ts` (Canada optional coverages section)
 
 **Changes needed:**
 - Convert to TypeScript
@@ -115,7 +115,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Formats insured as multi-line string: `"Name\nStreet\nCity, State, Zip"`
 - Used for ACORD 25 PDF form field
 
-**Where to copy it:** `src/generator/transform/formatters/AddressFormatter.ts`
+**Where to implement:** `src/generator/transform/formatters/AddressFormatter.ts`
 
 **Changes needed:**
 - Convert to TypeScript
@@ -127,7 +127,7 @@ Enhance the transform layer to handle real production data structures for both U
 **What it does:**
 - Joins profession list array with commas: `["Architect", "Engineer"]` → `"Architect, Engineer"`
 
-**Where to copy it:** `src/generator/transform/formatters/ProfessionFormatter.ts`
+**Where to implement:** `src/generator/transform/formatters/ProfessionFormatter.ts`
 
 **Changes needed:**
 - Convert to TypeScript
@@ -142,7 +142,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Example: `"ARCH_PROF"` → `"Architect"`
 
 **Where to use it:** `src/data/services/ProfessionLookupService.ts` (ALREADY PORTED IN STORY 1)
-Note: COI-MVP already has Canada HTML helpers in [coi-mvp-etl/src/generator/load/html/helpers.mjs](coi-mvp-etl/src/generator/load/html/helpers.mjs). You may reuse these helpers or provide a TypeScript wrapper (`helpers.ts`) for consistency during migration.
+Note: Canada HTML helpers moved in Story 0 to [coi-mvp-etl/src/generator/load/canada/helpers.ts](coi-mvp-etl/src/generator/load/canada/helpers.ts). Reuse these helpers directly.
 
 **Changes needed:**
 - Use this service from Story 1 in transform layer
@@ -153,7 +153,7 @@ Note: COI-MVP already has Canada HTML helpers in [coi-mvp-etl/src/generator/load
 
 ### Part A: Create Configuration Structure for Extensibility
 
-**File:** `/home/hestergong/Downloads/coi-mvp-etl/src/generator/config/transformConfig.ts`
+**File:** `/home/hestergong/Downloads/coi-mvp-etl/src/config/mappings.ts`
 
 ```typescript
 /**
@@ -161,7 +161,7 @@ Note: COI-MVP already has Canada HTML helpers in [coi-mvp-etl/src/generator/load
  * This allows adding new geographies, LOBs, and carriers without code changes
  */
 
-export interface TransformConfig {
+export interface MappingConfig {
   geographies: {
     [geography: string]: GeographyTransformConfig;
   };
@@ -196,7 +196,7 @@ export interface LOBTransformConfig {
 }
 
 // Configuration data - easily extensible
-export const transformConfig: TransformConfig = {
+export const mappingConfig: MappingConfig = {
   geographies: {
     CA: {
       name: 'Canada',

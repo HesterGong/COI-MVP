@@ -19,6 +19,7 @@ You are working on migrating COI (Certificate of Insurance) generation from the 
 - **Detailed Implementation:** `/home/hestergong/Downloads/coi-mvp-etl/docs/story{N}-implementation.md`
   - Contains specific file paths, code examples, integration steps
   - Use these as your primary reference when implementing
+  - Start with `story0-implementation.md` for project preparation and refactor steps
 
 ### Current Codebase Locations
 - **Old System (Reference - DO NOT MODIFY):** `~/Desktop/repos/foxden-policy-document-backend/`
@@ -34,9 +35,16 @@ You are working on migrating COI (Certificate of Insurance) generation from the 
     - [getProfessionMapper](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionMapper.ts)
 
 - **New System (Implementation Target):** `/home/hestergong/Downloads/coi-mvp-etl/`
-  - Current MVP with fixtures (to be replaced)
-  - Uses TypeScript, ETL pipeline architecture
-  - Existing helpers for Canada HTML live in [src/generator/load/html/helpers.mjs](coi-mvp-etl/src/generator/load/html/helpers.mjs)
+  - TypeScript + ETL pipeline architecture (post Story 0)
+  - Consolidated configuration under `src/config/`:
+    - `forms/` (US ACORD JSON), `carriers.ts`, `mappings.ts`, `types.ts`, `index.ts`
+  - Canada HTML helpers moved to [src/generator/load/canada/helpers.ts](coi-mvp-etl/src/generator/load/canada/helpers.ts) in Story 0
+
+### Pre-step: Complete Story 0 (Preparation)
+- Convert `.mjs` files to `.ts`, set up TypeScript, ESLint/Prettier/Jest.
+- Adopt the final folder structure and move files accordingly.
+- Keep current functionality working; add minimal adapters if needed.
+- Create `.env.example`, ensure `MONGODB_URI` and email-related envs are documented.
 
 ---
 

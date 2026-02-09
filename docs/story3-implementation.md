@@ -16,9 +16,14 @@ This guide defines the directory structure, TypeScript interfaces, validation, l
 
 ## Scope
 
-- Create `src/config/` directory and config files for forms, carriers, mappings, and professions
+- Create consolidated `src/config/` directory with minimal submodules
+  - `forms/` (US ACORD 25 JSON)
+  - `carriers.ts` (carrier metadata and signature references)
+  - `mappings.ts` (CA GL/EO and US GL mapping)
+  - `types.ts` (config interfaces)
+  - `index.ts` (central typed loader)
 - TypeScript with `strict: true` for all config modules
-- Add JSON Schema or Type-driven validation and a central `ConfigLoader`
+- Basic runtime checks; defer heavy JSON Schema or hot-reload endpoints to post-MVP
 - Reference the config from Transform, Map, and Load layers
 - Port existing production values:
   - US ACORD 25 form field mapping (Munich, StateNational)
@@ -30,18 +35,22 @@ This guide defines the directory structure, TypeScript interfaces, validation, l
 
 ## Directory Structure
 
-Plan a single TypeScript config file with strict typing (docs-only stage):
+Consolidated config modules under `src/config/`:
 
 ```
 /home/hestergong/Downloads/coi-mvp-etl/
 └── src/
   └── config/
-    └── config.ts   ← Single source of truth (forms, carriers, mappings, professions, validation)
+    ├── forms/               # US ACORD 25 JSON
+    ├── carriers.ts          # carrier metadata, signature references
+    ├── mappings.ts          # CA GL/EO, US GL mapping config
+    ├── types.ts             # config interfaces
+    └── index.ts             # typed loader (exports COI_CONFIG)
 ```
 
 Notes:
-- The existing US ACORD 25 JSON files remain in `src/generator/config/form-configs/` and are imported into `config.ts`.
-- Signature assets already exist in `templates/signatures/` with exact filenames used in production.
+- Move US ACORD 25 JSON files from `src/generator/config/form-configs/` into `src/config/forms/`.
+- Signature assets remain in `templates/signatures/` with exact filenames used in production.
 
 ---
 
@@ -53,7 +62,7 @@ Design for `src/config/config.ts`: it will contain all interfaces and concrete c
 
 ## Ported Values from Old System (Exact)
 
-- US ACORD 25 form configs: Use the exact JSON structures already present in [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json) and [src/generator/config/form-configs/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-Munich.json). These match production fields used in:
+- US ACORD 25 form configs: Use the exact JSON structures moved to [src/config/forms/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/config/forms/UScoiFormsConfigs-StateNational.json) and [src/config/forms/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/config/forms/UScoiFormsConfigs-Munich.json). These match production fields used in:
   - [foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts)
   - Carrier selection logic uses `carrierPartner` to switch between StateNational and Munich.
 - Canada HTML helper defaults:
@@ -70,10 +79,10 @@ Design for `src/config/config.ts`: it will contain all interfaces and concrete c
 
 ## Concrete Configuration Data
 
-Planned content of `src/config/config.ts` (to be implemented), derived from old system:
+Planned content of `src/config/index.ts` and modules (to be implemented), derived from old system:
 - **US ACORD 25 forms:** Import exact JSONs used by US generator:
-  - [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
-  - [src/generator/config/form-configs/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-Munich.json)
+  - [src/config/forms/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/config/forms/UScoiFormsConfigs-StateNational.json)
+  - [src/config/forms/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/config/forms/UScoiFormsConfigs-Munich.json)
   - Selection rules mirror `carrierPartner` logic in [foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts).
 - **Templates:**
   - US ACORD 25 PDF path: [templates/acord25/acord_25_2016-03.pdf](coi-mvp-etl/templates/acord25/acord_25_2016-03.pdf) (used as base in US generator).
@@ -94,9 +103,9 @@ Planned content of `src/config/config.ts` (to be implemented), derived from old 
 
 ## Validation & Loader
 
-Planned validation & loader in `src/config/config.ts`:
-- Validates presence of US ACORD 25 template path, ACORD 25 form arrays, carrier signature paths, and profession CSV path.
-- Future-ready hot-reload: watch the file, re-import, re-validate, and swap in memory.
+Planned validation & loader in `src/config/index.ts`:
+- Validates presence of US ACORD 25 template path, ACORD 25 form arrays, and carrier signature paths.
+- Future-ready hot-reload (post-MVP): re-import, re-validate, and swap in memory.
 
 ---
 
@@ -105,7 +114,7 @@ Planned validation & loader in `src/config/config.ts`:
 - Transform layer (Story 2): consumes `mappingConfig` and geography/LOB metadata
 - Map layer: uses `formConfig` to select template types (US ACORD 25 vs Canada HTML) and field maps
 - Load layer: uses `carrierConfig` for signature selection and carrier metadata
-- Profession lookup: `professionMapperConfig` drives CSV loading for name conversions
+- Profession lookup: move logic to Data Layer (`ProfessionLookupService`) rather than config
 
 ---
 
@@ -129,11 +138,11 @@ Planned validation & loader in `src/config/config.ts`:
 
 ## Steps to Implement
 
-1. Draft and review `src/config/config.ts` design (this document).
-2. Import US ACORD 25 JSON files from `src/generator/config/form-configs/`.
+1. Draft and review `src/config/index.ts` and module designs (this document).
+2. Move US ACORD 25 JSON files from `src/generator/config/form-configs/` into `src/config/forms/`.
 3. Port carrier metadata and signatures; include Lloyd’s insurer display name.
 4. Add mapping entries for CA GL/EO and US GL; include BOP example.
-5. Implement `validateConfig()` and `getConfig()`.
+5. Implement `validateConfig()` and `getConfig()` in `index.ts`.
 6. Wire Transform/Map/Load layers to consume `getConfig()`.
 7. Optional: add admin endpoints for `GET /api/config` and `POST /api/config/reload`.
 
