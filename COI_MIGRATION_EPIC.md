@@ -4,8 +4,8 @@
 
 **Epic ID:** COI-2024
 **Priority:** High
-**Total Story Points:** 102
-**Estimated Timeline:** 12-14 weeks
+**Total Story Points:** 93
+**Estimated Timeline:** 10-12 weeks
 **Team Size:** 2-3 engineers
 
 ### Description
@@ -13,6 +13,10 @@
 Build a production-ready, standalone COI generation service based on [COI-MVP](https://github.com/HesterGong/COI-MVP) that replicates all functionality from [foxden-policy-document-backend](https://github.com/Foxquilt/foxden-policy-document-backend) COI generation. The new service will be general, config-driven, and ready for future business expansion.
 
 **IMPORTANT:** No changes to foxden-policy-document-backend - this is a clean, standalone replacement.
+
+### Implementation Strategy
+
+**REUSE PROVEN CODE:** This epic emphasizes porting existing, production-tested code from the old system rather than rewriting from scratch. Key functions like `findPolicyHead`, `generateNamedInsured`, `getPolicyIdByLineOfBusiness`, and data extraction logic will be copied and adapted (TypeScript → JavaScript/ESM) to ensure feature parity and reduce implementation risk. Only fix known bugs (e.g., certificate number concurrency) during porting.
 
 ### Repository Context
 
@@ -42,68 +46,75 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 
 **Story ID:** COI-1
 **Priority:** High
-**Story Points:** 13
+**Story Points:** 8
 **Phase:** 1 - Foundation
 **Epic:** COI-2024
 
 ### Description
 
-Build MongoDB data extraction layer for COI-MVP to fetch policy/quote/application data. Create standalone service that can query the same MongoDB collections as foxden-policy-document-backend but with COI-MVP's ETL architecture.
+Port existing, proven MongoDB data extraction functions from foxden-policy-document-backend to coi-mvp-etl. Set up TypeScript, remove MVP fixture code, and integrate ported functions with the existing ETL pipeline.
 
-### What Already Exists
+**IMPORTANT:** This story focuses on **PORTING existing code**, not writing new code from scratch.
 
-- ✅ [src/fixtures.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/fixtures.mjs) - MVP fixture data
-- ✅ [src/generator/extract/extract.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/extract/extract.mjs) - Extract interface
+**📋 Implementation Guide:** [docs/story1-implementation.md](./docs/story1-implementation.md)
+
+### Scope
+
+**Remove:**
+- ❌ `src/fixtures.mjs` - MVP fixture data (entire file)
+- ❌ `src/generator/extract/fixtures.mjs` - Duplicate fixtures
+
+**Create:**
+- ➕ TypeScript setup (`tsconfig.json`, update `package.json`)
+- ➕ `src/data/` - New data layer with ported functions
+  - `client/MongoDbClient.ts` - MongoDB connection wrapper
+  - `types/PolicyView.ts` - TypeScript interfaces
+  - `utils/generateNamedInsured.ts` - Port from old system
+  - `utils/getPolicyIdByLineOfBusiness.ts` - Port from old system
+  - `services/PolicyDataExtractor.ts` - Port `findPolicyHead`
+  - `services/CertificateNumberService.ts` - Fix concurrency bug
+  - `services/ProfessionLookupService.ts` - Port profession lookup
+  - `services/PolicyMetadataService.ts` - Port metadata helpers
+  - `services/CarrierInfoService.ts` - Port carrier lookup
+
+**Modify:**
+- ✏️ `src/generator/extract/extract.mjs` → `extract.ts` - Replace fixtures with real MongoDB
+- ✏️ `src/index.mjs` → `index.ts` - Add MongoDB initialization
 
 ### Acceptance Criteria
 
-- [ ] Create `src/data/` directory for data access layer
-- [ ] Create `MongoDbClient` service:
-  - Connection management (connection pooling, retry logic)
-  - Query builders for policy, quote, application collections
-  - Support for the same MongoDB schema as foxden-policy-document-backend
-- [ ] Create `PolicyDataExtractor`:
-  - Find policy by `policyFoxdenId` (same logic as `findPolicyHead`)
-  - Extract application answers (business name, DBA, address, profession, timezone)
-  - Extract policy data (effective/expiry dates, carrier partner, policies array)
-  - Extract quote data (rating input for US and Canada)
-  - Support both US (`UsCommonRatingInput`) and Canada (`CanadaRatingInput`) structures
-- [ ] Create `CertificateNumberService`:
-  - Thread-safe certificate number generation
-  - Use atomic MongoDB operations (not `countDocuments`)
-  - Per-policy counter management
-  - Handle concurrent requests safely
-- [ ] Create `ProfessionLookupService`:
-  - Convert profession codes to display names
-  - Cache profession mappings for performance
-  - Handle profession arrays and single values
-- [ ] Update [src/generator/extract/extract.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/extract/extract.mjs):
-  - Accept MongoDB connection as dependency injection
-  - Use new data services
-  - Return enriched data structure with all required fields
-- [ ] Add configuration for MongoDB connection (environment variables)
-- [ ] Add comprehensive error handling for database failures
-- [ ] Add unit tests for all data services
-- [ ] Add integration tests with test MongoDB instance
+- [ ] **Setup TypeScript** - Add tsconfig.json, update package.json with TypeScript + MongoDB dependencies
+- [ ] **Port 6 core functions** from old system (see implementation guide for exact sources):
+  - `findPolicyHead` → `PolicyDataExtractor.ts` (MongoDB aggregation - copy exactly)
+  - `generateNamedInsured` → `generateNamedInsured.ts` (15 lines - copy exactly)
+  - `getPolicyIdByLineOfBusiness` → `getPolicyIdByLineOfBusiness.ts` (19 lines - copy exactly)
+  - `getLatestActivePolicy` → `PolicyMetadataService.ts`
+  - `getCarrierFromPolicy` → `CarrierInfoService.ts`
+  - `getProfessionNameList` → `ProfessionLookupService.ts`
+- [ ] **Create CertificateNumberService** - Fix concurrency bug in old system (atomic `findOneAndUpdate` instead of `countDocuments`)
+- [ ] **Create MongoDbClient** - Connection wrapper with pooling and retry logic
+- [ ] **Update extract layer** - Replace fixture logic with real MongoDB extraction:
+  - `extractCanadaData()` - Port from [sendCertificateOfInsurance.ts:36-108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L36-L108)
+  - `extractUSData()` - Port from [sendUsCertificateOfInsurance.ts:38-98](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L38-L98)
+- [ ] **Environment config** - Add `.env` with `MONGODB_URI`
+- [ ] **Unit tests** - Test all ported functions
+- [ ] **Integration tests** - Test full extraction flow with MongoDB
 
 ### Technical Notes
 
-- Query same MongoDB collections as foxden-policy-document-backend
-- Extract same data fields but transform to canonical model
-- **US Data Fields:**
-  - Application: `BusinessInformation_100_CompanyName_WORLD_EN`, `BusinessInformation_100_DBAName_WORLD_EN`, `BusinessInformation_100_BusinessAddress_WORLD_EN`, `professionLabelList`, `timeZone`
-  - Quote: `rating.input.GL.policyEffectiveDate`, `GL.policyExpirationDate`, `GL.occurrenceLimit`, `GL.premisesRentedToYouLimit`, `GL.medicalPaymentsLimit`, `GL.aggregateLimit`
-  - Policy: `policies` array for LOB-specific policy IDs
-- **Canada Data Fields:**
-  - Application: `BusinessInformation_100_CompanyName_WORLD_EN`, `BusinessInformation_100_DBAName_WORLD_EN`, `BusinessInformation_100_MailingAddress_WORLD_EN`, `BusinessInformation_100_Profession_WORLD_EN`, `timeZone`
-  - Quote: `rating.input.GL.aggregateLimit`, `GL.deductible`, `GL.occurrenceLimit`, `GL.medicalPaymentsLimit`, `GL.tenantLegalLiabilityLimit`, plus optional coverages with boolean flags
-- Make data layer pluggable (interface-based, could swap MongoDB for different DB later)
-- Certificate number only used for US COI generation
+**Porting Approach:**
+- Copy MongoDB aggregation from `findPolicyHead` **exactly as-is** (it's tested in production)
+- Keep same data structures and field names (maintain compatibility)
+- Only fix known bugs (certificate number concurrency)
 
-### Reference Files (Do Not Modify)
+**Data Flow:**
+```
+index.ts → MongoDbClient → extract.ts → PolicyDataExtractor.findPolicyHead() → extractCanadaData/extractUSData
+```
 
-- [sendCertificateOfInsurance.ts:24-108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L24-L108) - Canada data extraction
-- [sendUsCertificateOfInsurance.ts:26-98](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L26-L98) - US data extraction
+**Certificate Number Bug Fix:**
+- Old: `countDocuments()` (has race condition)
+- New: `findOneAndUpdate({ $inc })` (atomic operation)
 
 ### Dependencies
 
@@ -115,13 +126,15 @@ Build MongoDB data extraction layer for COI-MVP to fetch policy/quote/applicatio
 
 **Story ID:** COI-2
 **Priority:** High
-**Story Points:** 13
+**Story Points:** 10
 **Phase:** 2 - Core Business Logic
 **Epic:** COI-2024
 
 ### Description
 
 Enhance [src/generator/transform/transform.mjs](https://github.com/HesterGong/COI-MVP/blob/main/src/generator/transform/transform.mjs) to handle real production data structures for both US and Canada. Make transformations general and configurable for future LOBs.
+
+**NOTE:** This story uses helper functions ported in Story 1 (`generateNamedInsured`, `getProfessionNameList`). The extracted data from Story 1 flows into this transform layer.
 
 ### What Already Exists
 
@@ -147,8 +160,8 @@ Enhance [src/generator/transform/transform.mjs](https://github.com/HesterGong/CO
   - Unmanned aircraft coverage (if `limitedCoverageForUnmannedAircraft === true`)
   - Build array: `[{ name: 'Unmanned aircraft', limit: { amount, deductible } }]`
 - [ ] Create transformation utilities:
-  - `generateNamedInsured(businessName, dbaName)` - combine business name and DBA
-  - `formatInsuredBlock(name, address)` - format US insured block
+  - **ALREADY PORTED IN STORY 1:** Use `generateNamedInsured(businessName, dbaName)` from `src/data/utils/generateNamedInsured.js`
+  - `formatInsuredBlock(name, address)` - format US insured block (port from [sendUsCertificateOfInsurance.ts:108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L108))
   - `extractLimitsFromRating(ratingInput, lob)` - generic limit extraction
   - `buildCoverageStructure(ratingInput, geography)` - geography-specific coverage builder
 - [ ] Handle numeric string conversions:
@@ -272,13 +285,15 @@ Enhance configuration system to be fully production-ready and general for future
 
 **Story ID:** COI-4
 **Priority:** High
-**Story Points:** 13
+**Story Points:** 10
 **Phase:** 4 - Persistence
 **Epic:** COI-2024
 
 ### Description
 
 Build complete persistence layer for S3 uploads and COIRecord database writes. Make it general and reusable for all LOBs and geographies.
+
+**NOTE:** This story uses helper functions ported in Story 1 (`getLatestActivePolicy`, `getCarrierFromPolicy`) for fetching policy metadata needed for S3/DB operations.
 
 ### What Already Exists
 
@@ -325,9 +340,9 @@ Build complete persistence layer for S3 uploads and COIRecord database writes. M
   - Implement configurable rollback strategy
   - Add idempotency support (don't duplicate if retried)
   - Use idempotency key: `{policyFoxdenId}-{lob}-{additionalInsuredName}-{timestamp}`
-- [ ] Create metadata helper services:
-  - `CarrierInfoService` - Get carrier from policy using `getCarrierFromPolicy()`
-  - `PolicyMetadataService` - Get policy using `getLatestActivePolicy()` to fetch `_id` and `application._id`
+- [ ] Use ported metadata helper services from Story 1:
+  - **ALREADY PORTED IN STORY 1:** Use `CarrierInfoService.getCarrierFromPolicy(policy)` from `src/data/services/CarrierInfoService.js`
+  - **ALREADY PORTED IN STORY 1:** Use `PolicyMetadataService.getLatestActivePolicy(policyFoxdenId)` from `src/data/services/PolicyMetadataService.js` to fetch `_id` and `application._id`
 - [ ] Make persistence layer pluggable:
   - `StorageInterface` - could swap S3 for Azure Blob, GCS, etc.
   - `DatabaseInterface` - could use different database
@@ -806,11 +821,16 @@ Build comprehensive test suite for COI-MVP. Ensure feature parity with reference
 
 #### Part B: Unit Tests (Target: >80% Coverage)
 
-- [ ] **Data Layer Tests** (`src/data/`):
+- [ ] **Data Layer Tests** (`src/data/`) - Test all ported functions from Story 1:
   - MongoDbClient: connection, retry, error handling
-  - PolicyDataExtractor: US and Canada policy extraction
-  - CertificateNumberService: concurrent certificate number generation
-  - ProfessionLookupService: profession code lookup and caching
+  - **PolicyDataExtractor.findPolicyHead():** Test MongoDB aggregation matches old system output
+  - **generateNamedInsured():** Test with/without DBA, matches old system format
+  - **getPolicyIdByLineOfBusiness():** Test with GL/EO/BOP, matches old system output
+  - **CertificateNumberService.getNextCertificateNumber():** Test atomic increment, concurrent generation (fix for old system bug)
+  - **ProfessionLookupService.getProfessionNames():** Test code→name conversion, caching
+  - **getLatestActivePolicy():** Test policy metadata fetch
+  - **getCarrierFromPolicy():** Test carrier name extraction
+  - Compare all outputs with old system (regression tests)
   - Test edge cases: missing policies, invalid data, network failures
 - [ ] **Transform Layer Tests** (`src/generator/transform/`):
   - US coverage transformation (all limit types)
@@ -1469,23 +1489,24 @@ Final production readiness checks, comprehensive documentation, and service laun
 
 ### Timeline & Resources
 
-**Total Estimated Timeline:** 12-14 weeks
+**Total Estimated Timeline:** 10-12 weeks (reduced due to code reuse)
+**Total Story Points:** 93 (reduced from 102 due to porting approach)
 **Recommended Team Size:** 2-3 engineers
 
 ### Phase Breakdown
 
-| Phase | Stories | Duration | Dependencies |
-|-------|---------|----------|--------------|
-| **Phase 1:** Foundation | Story 1 | 2 weeks | None |
-| **Phase 2:** Core Logic | Story 2 | 2 weeks | Story 1 |
-| **Phase 3:** Configuration | Story 3 | 1 week | Story 2 |
-| **Phase 4:** Persistence | Story 4 | 2 weeks | Story 1 (can parallelize with 2-3) |
-| **Phase 5:** Delivery | Story 5 | 1.5 weeks | Story 4 (can parallelize with 6-7) |
-| **Phase 6:** API/Events | Story 6 | 2 weeks | Stories 4, 5 |
-| **Phase 7:** Assets | Story 7 | 0.5 weeks | Independent (can parallelize) |
-| **Phase 8:** Testing | Story 8 | 2 weeks | All stories (ongoing throughout) |
-| **Phase 9:** Deployment | Story 9 | 2 weeks | Story 8 |
-| **Phase 10:** Launch Prep | Story 10 | 1 week | Story 9 |
+| Phase | Stories | Story Points | Duration | Dependencies |
+|-------|---------|--------------|----------|--------------|
+| **Phase 1:** Foundation | Story 1 | 8 pts | 1.5 weeks | None (porting existing code) |
+| **Phase 2:** Core Logic | Story 2 | 10 pts | 1.5 weeks | Story 1 |
+| **Phase 3:** Configuration | Story 3 | 5 pts | 1 week | Story 2 |
+| **Phase 4:** Persistence | Story 4 | 10 pts | 1.5 weeks | Story 1 (can parallelize with 2-3) |
+| **Phase 5:** Delivery | Story 5 | 8 pts | 1.5 weeks | Story 4 (can parallelize with 6-7) |
+| **Phase 6:** API/Events | Story 6 | 13 pts | 2 weeks | Stories 4, 5 |
+| **Phase 7:** Assets | Story 7 | 3 pts | 0.5 weeks | Independent (can parallelize) |
+| **Phase 8:** Testing | Story 8 | 13 pts | 2 weeks | All stories (ongoing throughout) |
+| **Phase 9:** Deployment | Story 9 | 13 pts | 2 weeks | Story 8 |
+| **Phase 10:** Launch Prep | Story 10 | 8 pts | 1 week | Story 9 |
 
 ### Parallelization Opportunities
 
@@ -1496,6 +1517,10 @@ Final production readiness checks, comprehensive documentation, and service laun
 ### Key Principles
 
 ✅ **DO NOT** modify [foxden-policy-document-backend](https://github.com/Foxquilt/foxden-policy-document-backend)
+✅ **REUSE proven code** from old system (port/copy existing functions, don't rewrite)
+✅ **Copy MongoDB aggregation logic** exactly as-is (it's tested and works in production)
+✅ **Port helper functions** directly (generateNamedInsured, getPolicyIdByLineOfBusiness, etc.)
+✅ **Fix known bugs** during porting (e.g., certificate number concurrency issue)
 ✅ Build [COI-MVP](https://github.com/HesterGong/COI-MVP) as standalone, general, configurable service
 ✅ Support future business expansion (new LOBs, geographies, carriers)
 ✅ Production-ready with proper monitoring and operations
