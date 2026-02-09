@@ -42,22 +42,22 @@ Enhance the transform layer to handle real production data structures for both U
 ### Where This Logic Lives
 
 **Canada GL Coverage Transformation:**
-- **File:** `~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts`
+- **File:** [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
 - **Lines:** 90-209
 - **Purpose:** Converts Canada rating input (strings) into structured coverage objects for HTML PDF generation
 
 **US Coverage Transformation:**
-- **File:** `~/Desktop/repos/foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts`
+- **File:** [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
 - **Lines:** 107-122
 - **Purpose:** Creates flat UsCoiInput structure with insured block formatting
 
 **Canada HTML Generation Helpers:**
-- **File:** `~/Desktop/repos/foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts`
+- **File:** [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts)
 - **Lines:** 86-117
 - **Purpose:** Handlebars helpers for formatting currency, dates, and province names
 
 **Profession Name Lookup:**
-- **File:** `~/Desktop/repos/foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts`
+- **File:** [foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts)
 - **Lines:** 1-13
 - **Purpose:** Converts profession codes to human-readable names using CSV mapping
 
@@ -142,6 +142,7 @@ Enhance the transform layer to handle real production data structures for both U
 - Example: `"ARCH_PROF"` → `"Architect"`
 
 **Where to use it:** `src/data/services/ProfessionLookupService.ts` (ALREADY PORTED IN STORY 1)
+Note: COI-MVP already has Canada HTML helpers in [coi-mvp-etl/src/generator/load/html/helpers.mjs](coi-mvp-etl/src/generator/load/html/helpers.mjs). You may reuse these helpers or provide a TypeScript wrapper (`helpers.ts`) for consistency during migration.
 
 **Changes needed:**
 - Use this service from Story 1 in transform layer

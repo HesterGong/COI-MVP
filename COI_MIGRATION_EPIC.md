@@ -98,18 +98,18 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 ### Acceptance Criteria
 
 - [ ] **Setup TypeScript** - Add tsconfig.json, update package.json with TypeScript + MongoDB dependencies
-- [ ] **Port 6 core functions** from old system (see implementation guide for exact sources):
-  - `findPolicyHead` → `PolicyDataExtractor.ts` (MongoDB aggregation - copy exactly)
-  - `generateNamedInsured` → `generateNamedInsured.ts` (15 lines - copy exactly)
-  - `getPolicyIdByLineOfBusiness` → `getPolicyIdByLineOfBusiness.ts` (19 lines - copy exactly)
-  - `getLatestActivePolicy` → `PolicyMetadataService.ts`
-  - `getCarrierFromPolicy` → `CarrierInfoService.ts`
-  - `getProfessionNameList` → `ProfessionLookupService.ts`
+- [ ] **Port 6 core functions** from old system (workspace references below):
+  - `findPolicyHead` → `PolicyDataExtractor.ts` (copy aggregation exactly) — source: [foxden-policy-document-backend/src/services/utils/findPolicyHead.ts](foxden-policy-document-backend/src/services/utils/findPolicyHead.ts)
+  - `generateNamedInsured` → `generateNamedInsured.ts` — source: [foxden-policy-document-backend/src/utils/generateNamedInsured.ts](foxden-policy-document-backend/src/utils/generateNamedInsured.ts)
+  - `getPolicyIdByLineOfBusiness` → `getPolicyIdByLineOfBusiness.ts` — source: [foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts](foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts)
+  - `getLatestActivePolicy` → `PolicyMetadataService.ts` — source: [foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts](foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts)
+  - `getCarrierFromPolicy` → `CarrierInfoService.ts` — source: [foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts](foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts)
+  - `getProfessionNameList` → `ProfessionLookupService.ts` — source: [foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts)
 - [ ] **Create CertificateNumberService** - Fix concurrency bug in old system (atomic `findOneAndUpdate` instead of `countDocuments`)
 - [ ] **Create MongoDbClient** - Connection wrapper with pooling and retry logic
 - [ ] **Update extract layer** - Replace fixture logic with real MongoDB extraction:
-  - `extractCanadaData()` - Port from [sendCertificateOfInsurance.ts:36-108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L36-L108)
-  - `extractUSData()` - Port from [sendUsCertificateOfInsurance.ts:38-98](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L38-L98)
+  - `extractCanadaData()` — port the data selection/destructuring portions from [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+  - `extractUSData()` — port the data selection/destructuring portions from [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
 - [ ] **Environment config** - Add `.env` with `MONGODB_URI`
 - [ ] **Unit tests** - Test all ported functions
 - [ ] **Integration tests** - Test full extraction flow with MongoDB
@@ -127,8 +127,8 @@ index.ts → MongoDbClient → extract.ts → PolicyDataExtractor.findPolicyHead
 ```
 
 **Certificate Number Bug Fix:**
-- Old: `countDocuments()` (has race condition)
-- New: `findOneAndUpdate({ $inc })` (atomic operation)
+- Old: `countDocuments()` (race condition in certificate numbering; see US implementation) — refer to [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
+- New: Implement atomic counter via `findOneAndUpdate({ $inc })` in `CertificateNumberService`
 
 ### Dependencies
 
@@ -169,21 +169,22 @@ Port existing, proven transformation logic from foxden-policy-document-backend t
 
 ### Acceptance Criteria
 
-- [ ] **Port Canada transformation logic** from [sendCertificateOfInsurance.ts:90-209](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L90-L209):
+- [ ] **Port Canada transformation logic** from [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts):
   - String-to-number conversion (Canada sends `"5000000"` as string)
   - Build structured GL coverage: 6 main coverages + optional pollution extension
   - Conditionally build EO coverage (if `miscellaneousEO` flag is true)
   - Build "others" array for optional coverages (unmanned aircraft)
   - Use `generateNamedInsured()` from Story 1
-- [ ] **Port US transformation logic** from [sendUsCertificateOfInsurance.ts:107-122](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L107-L122):
+- [ ] **Port US transformation logic** from [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts):
   - Format insured block as multi-line string: `"Name\nStreet\nCity, State, Zip"`
   - Join profession list with commas
   - Extract flat limits structure from rating input
   - Use quote dates (policyEffectiveDate/policyExpirationDate), NOT policy dates
-- [ ] **Port Canada HTML helpers** from [generate.ts:86-117](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/generate.ts#L86-L117):
+- [ ] **Port Canada HTML helpers** from [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts):
   - `formatCurrency()` - CAD formatting
   - `formatDate()` - yyyy/MM/dd format
   - `toLongProvinceName()` - ON → Ontario
+  - Note: COI-MVP already provides equivalent helpers in [coi-mvp-etl/src/generator/load/html/helpers.mjs](coi-mvp-etl/src/generator/load/html/helpers.mjs)
 - [ ] **Create canonical model structure** with TypeScript interfaces:
   - Geography-agnostic base fields (namedInsured, dates, addresses)
   - Canada-specific: `canada.coverages` (gl, eo?, others)

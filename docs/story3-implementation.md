@@ -53,18 +53,18 @@ Design for `src/config/config.ts`: it will contain all interfaces and concrete c
 
 ## Ported Values from Old System (Exact)
 
-- US ACORD 25 form configs: Use the exact JSON structures already present in `src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json` and `UScoiFormsConfigs-Munich.json`. These match production fields used in:
-  - [UScertificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts#L1-L260)
+- US ACORD 25 form configs: Use the exact JSON structures already present in [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json) and [src/generator/config/form-configs/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-Munich.json). These match production fields used in:
+  - [foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts)
   - Carrier selection logic uses `carrierPartner` to switch between StateNational and Munich.
 - Canada HTML helper defaults:
   - Currency: `CAD`, locale: `en-CA`, date format: `yyyy/MM/dd`
   - Province name resolver via `toLongProvinceName` in Handlebars helpers
-  - Source: [certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts#L1-L120)
+  - Source: [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts)
 - Insurer display name for Canada: "Certain Underwriters at Lloyd's of London" from the COI input builder in:
-  - [sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L170-L210)
+  - [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
 - Signature assets:
-  - Munich: `templates/signatures/MunichUSSignature.png`
-  - StateNational: `templates/signatures/StateNationalPresidentSignature.png`
+  - Munich: [templates/signatures/MunichUSSignature.png](coi-mvp-etl/templates/signatures/MunichUSSignature.png)
+  - StateNational: [templates/signatures/StateNationalPresidentSignature.png](coi-mvp-etl/templates/signatures/StateNationalPresidentSignature.png)
 
 ---
 
@@ -72,21 +72,21 @@ Design for `src/config/config.ts`: it will contain all interfaces and concrete c
 
 Planned content of `src/config/config.ts` (to be implemented), derived from old system:
 - **US ACORD 25 forms:** Import exact JSONs used by US generator:
-  - [UScoiFormsConfigs-StateNational.json](src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
-  - [UScoiFormsConfigs-Munich.json](src/generator/config/form-configs/UScoiFormsConfigs-Munich.json)
-  - Selection rules mirror `carrierPartner` logic in [US generate](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts#L1-L220).
+  - [src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-StateNational.json)
+  - [src/generator/config/form-configs/UScoiFormsConfigs-Munich.json](coi-mvp-etl/src/generator/config/form-configs/UScoiFormsConfigs-Munich.json)
+  - Selection rules mirror `carrierPartner` logic in [foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/generate.ts).
 - **Templates:**
-  - US ACORD 25 PDF path: `templates/acord25/acord_25_2016-03.pdf` (used as base in US generator).
-  - Canada HTML template: [templates/html/template.handlebars](templates/html/template.handlebars) consumed by [Canada generate](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts#L1-L120).
+  - US ACORD 25 PDF path: [templates/acord25/acord_25_2016-03.pdf](coi-mvp-etl/templates/acord25/acord_25_2016-03.pdf) (used as base in US generator).
+  - Canada HTML template: [templates/html/template.handlebars](coi-mvp-etl/templates/html/template.handlebars) consumed by [foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/generate.ts).
 - **Carrier metadata:**
   - Signature paths match US generator: [MunichUSSignature.png](templates/signatures/MunichUSSignature.png), [StateNationalPresidentSignature.png](templates/signatures/StateNationalPresidentSignature.png).
   - Insurer display name for Canada: “Certain Underwriters at Lloyd’s of London” (from [Canada send](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L150-L210)).
 - **Field mappings:**
-  - CA GL/EO inputs (string→number) for coverage building (from [Canada send](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L90-L209)).
-  - US GL flat limits and insured block formatting (from [US send](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L100-L160)).
+  - CA GL/EO inputs (string→number) for coverage building (from [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)).
+  - US GL flat limits and insured block formatting (from [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)).
   - Include BOP example for future extensibility.
 - **Profession mapper:**
-  - CSV path: [profession_mapper.csv](foxden-policy-document-backend/src/services/policyDocument/munich/tables/profession_mapper.csv#L1-L40), used by Canada HTML via `getProfessionNameList`.
+  - CSV path: [foxden-policy-document-backend/src/services/policyDocument/munich/tables/profession_mapper.csv](foxden-policy-document-backend/src/services/policyDocument/munich/tables/profession_mapper.csv), used by Canada HTML via `getProfessionNameList`.
 - **Defaults:**
   - US producer contact defaults (`usEmail`, `usPhoneNumber`) surfaced via config to align with ACORD forms; kept consistent with old system usage.
 

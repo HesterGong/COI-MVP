@@ -241,7 +241,7 @@ export interface PolicyView {
 }
 ```
 
-**Source:** Derived from [findPolicyHead.ts](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/utils/findPolicyHead.ts)
+**Source:** Derived from [foxden-policy-document-backend/src/services/utils/findPolicyHead.ts](foxden-policy-document-backend/src/services/utils/findPolicyHead.ts)
 
 #### B2. Port `generateNamedInsured`
 
@@ -268,7 +268,7 @@ export function generateNamedInsured(
 }
 ```
 
-**Source:** Copy from [generateNamedInsured.ts](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/utils/generateNamedInsured.ts) - **EXACT COPY**
+**Source:** Copy from [foxden-policy-document-backend/src/utils/generateNamedInsured.ts](foxden-policy-document-backend/src/utils/generateNamedInsured.ts) - **EXACT COPY**
 
 #### B3. Port `getPolicyIdByLineOfBusiness`
 
@@ -292,7 +292,7 @@ export function getPolicyIdByLineOfBusiness(
 }
 ```
 
-**Source:** Copy from [getPolicyIdByLineOfBusiness.ts](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/utils/getPolicyIdByLineOfBusiness.ts) - **EXACT COPY**
+**Source:** Copy from [foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts](foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts) - **EXACT COPY**
 
 #### B4. Port `findPolicyHead` (MongoDB Aggregation)
 
@@ -459,7 +459,7 @@ export class PolicyDataExtractor {
 }
 ```
 
-**Source:** Copy MongoDB aggregation from [findPolicyHead.ts:33-194](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/utils/findPolicyHead.ts#L33-L194) - **EXACT COPY**
+**Source:** Copy MongoDB aggregation from [foxden-policy-document-backend/src/services/utils/findPolicyHead.ts](foxden-policy-document-backend/src/services/utils/findPolicyHead.ts) - **EXACT COPY**
 
 ---
 
@@ -493,7 +493,7 @@ export class CertificateNumberService {
 }
 ```
 
-**Source:** Fixes bug in [sendUsCertificateOfInsurance.ts:95-98](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L95-L98)
+**Source:** Fixes bug in [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
 
 ---
 
@@ -700,8 +700,8 @@ async function extractUSData(db: Db, policy: any, params: ExtractParams) {
 ```
 
 **Source:** Combines logic from:
-- [sendCertificateOfInsurance.ts:36-108](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts#L36-L108) - Canada
-- [sendUsCertificateOfInsurance.ts:38-98](https://github.com/Foxquilt/foxden-policy-document-backend/blob/main/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts#L38-L98) - US
+- [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts) - Canada
+- [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts) - US
 
 #### E3. Update `index.mjs` → `index.ts`
 
