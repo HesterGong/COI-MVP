@@ -1,5 +1,19 @@
 # EPIC: Build Production-Ready COI Generation Service (COI-MVP)
 
+## 🤖 For AI Agents
+
+**📋 START HERE:** [docs/AI_AGENT_INSTRUCTIONS.md](./docs/AI_AGENT_INSTRUCTIONS.md)
+
+This document contains:
+- How to approach each story
+- Where to find old system code to port
+- Guidelines for creating implementation guides
+- Specific instructions for Story 2 onwards
+
+**Note:** Stories in this epic are concise (for Jira). Detailed implementation guides are in `docs/story{N}-implementation.md`.
+
+---
+
 ## Epic Overview
 
 **Epic ID:** COI-2024

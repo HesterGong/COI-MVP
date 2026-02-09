@@ -3,8 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "packageManager": "yarn@1.22.0",
   "scripts": {
-    "start": "node src/index.mjs"
+    "start": "node src/index.mjs",
+    "build": "tsc",
+    "dev": "tsc && node dist/index.js",
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "date-fns": "^3.6.0",

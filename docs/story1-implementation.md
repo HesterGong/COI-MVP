@@ -101,7 +101,9 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "date-fns": "^3.6.0",
@@ -121,7 +123,7 @@ Port existing, proven MongoDB data extraction functions from foxden-policy-docum
 }
 ```
 
-- [ ] **Run:** `npm install`
+- [ ] **Run:** `yarn install`
 
 ---
 
@@ -863,14 +865,17 @@ export async function runPipeline(db, extractInput, config) {
 ## Testing
 
 ```bash
-# 1. Build TypeScript
-npm run build
+# 1. Install dependencies
+yarn install
 
-# 2. Set up test MongoDB with real data
+# 2. Build TypeScript
+yarn build
+
+# 3. Set up test MongoDB with real data
 # (Copy data from production or use test fixtures)
 
-# 3. Run
-npm start
+# 4. Run
+yarn start
 
 # Should generate COI using real MongoDB data
 ```
