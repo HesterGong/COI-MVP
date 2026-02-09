@@ -33,7 +33,6 @@ Doc-only update: This guide specifies the exact sources and targets for porting 
 │       │   └── MongoDbClient.ts        ← NEW: MongoDB connection wrapper
 │       ├── services/
 │       │   ├── PolicyDataExtractor.ts  ← NEW: Port findPolicyHead
-│       │   ├── CertificateNumberService.ts ← NEW: Thread-safe cert numbers
 │       │   ├── ProfessionLookupService.ts  ← NEW: Port getProfessionNameList
 │       │   ├── PolicyMetadataService.ts    ← NEW: Port getLatestActivePolicy
 │       │   └── CarrierInfoService.ts       ← NEW: Port getCarrierFromPolicy
@@ -468,40 +467,6 @@ export class PolicyDataExtractor {
 
 ---
 
-### Part C: Create Certificate Number Service (Fix Old Bug)
-
-**File:** `/home/hestergong/Downloads/coi-mvp-etl/src/data/services/CertificateNumberService.ts`
-
-```typescript
-import { Db } from 'mongodb';
-
-/**
- * Thread-safe certificate number generation using atomic MongoDB operations.
- * Fixes the concurrency issue in the old system (countDocuments).
- */
-export class CertificateNumberService {
-  constructor(private db: Db) {}
-
-  async getNextCertificateNumber(policyFoxdenId: string): Promise<number> {
-    const result = await this.db.collection('CertificateCounter').findOneAndUpdate(
-      { policyFoxdenId },
-      { $inc: { count: 1 } },
-      { upsert: true, returnDocument: 'after' }
-    );
-
-    if (!result?.value) {
-      throw new Error('Failed to generate certificate number');
-    }
-
-    return result.value.count;
-  }
-}
-```
-
-**Source:** Fixes bug in [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
-
----
-
 ### Part D: Create MongoDB Client Wrapper
 
 **File:** `/home/hestergong/Downloads/coi-mvp-etl/src/data/client/MongoDbClient.ts`
@@ -565,7 +530,6 @@ rm /home/hestergong/Downloads/coi-mvp-etl/src/generator/extract/fixtures.mjs  # 
 ```typescript
 import { Db } from 'mongodb';
 import { PolicyDataExtractor } from '../../data/services/PolicyDataExtractor.js';
-import { CertificateNumberService } from '../../data/services/CertificateNumberService.js';
 import { getPolicyIdByLineOfBusiness } from '../../data/utils/getPolicyIdByLineOfBusiness.js';
 import { CanadaRatingInput, UsCommonRatingInput, Address } from '../../data/types/PolicyView.js';
 
@@ -681,9 +645,7 @@ async function extractUSData(db: Db, policy: any, params: ExtractParams) {
   // Get policy number for this LOB
   const policyNumber = getPolicyIdByLineOfBusiness(policyData.policies, params.lob);
 
-  // Generate certificate number (thread-safe, fixes old bug)
-  const certificateNumberService = new CertificateNumberService(db);
-  const certificateNumber = await certificateNumberService.getNextCertificateNumber(policyNumber);
+  // Certificate numbering remains in old system for now (deferred)
 
   return {
     policyFoxdenId: params.policyFoxdenId,
@@ -697,7 +659,6 @@ async function extractUSData(db: Db, policy: any, params: ExtractParams) {
     carrierPartner: policyData.carrierPartner,
     recipientEmail,
     additionalInsured: params.additionalInsured,
-    certificateNumber,
     policyNumber,
     ratingInput,
   };
@@ -835,7 +796,6 @@ export async function runPipeline(db, extractInput, config) {
 | [CREATE] CREATE | `src/data/utils/generateNamedInsured.ts` | Port from old system |
 | [CREATE] CREATE | `src/data/utils/getPolicyIdByLineOfBusiness.ts` | Port from old system |
 | [CREATE] CREATE | `src/data/services/PolicyDataExtractor.ts` | Port findPolicyHead |
-| [CREATE] CREATE | `src/data/services/CertificateNumberService.ts` | Fix concurrency bug |
 | [MODIFY] REPLACE | `src/generator/extract/extract.mjs` → `extract.ts` | Real MongoDB extraction |
 | [MODIFY] REPLACE | `src/index.mjs` → `index.ts` | Add MongoDB initialization |
 | [MODIFY] MODIFY | `package.json` | Add TypeScript + MongoDB deps |

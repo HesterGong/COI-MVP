@@ -1,275 +1,363 @@
-# Story 0: Project Preparation & TypeScript Setup – Implementation Guide
+# Story 0: TypeScript Setup & Project Structure
 
-**Story ID:** COI-0
-**Priority:** High
-**Story Points:** 8
-**Phase:** 0 - Preparation
-**Epic:** COI-2024
+**Story ID:** COI-0 | **Priority:** High | **Story Points:** 8 | **Phase:** Preparation
 
-## Objective
+---
 
-Refactor the current codebase to a clean, TypeScript-based structure that supports all later stories without breaking existing behavior. Establish tooling, environment configuration, and a stable folder layout. Keep generation working during the transition.
+## 📚 Quick Links
 
-Note: For MVP planning, this guide is documentation-only. No code changes are required in this step per current request. Stories 0–3 collectively define the MVP scope; implementation will follow once approved.
+- **Track Progress:** [COVERAGE_MATRIX.md](./COVERAGE_MATRIX.md#story-0-setup) - Check off items as you complete
+- **Quick Reference:** [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) - For daily coding
+- **Old System Code:** `~/Desktop/repos/foxden-policy-document-backend/`
 
-## Outcomes
+---
 
-- TypeScript enabled with strict mode
-- Final project folder structure created
-- Core files moved from `.mjs` to `.ts`
-- ESLint, Prettier, Jest (ts-jest) in place
-## Outcomes
+## 🎯 Objective
 
-- TypeScript enabled with strict mode
-- Final project folder structure created
-- Core files moved from `.mjs` to `.ts`
-- ESLint, Prettier, Jest (ts-jest) in place
-- `package.json` scripts updated
-- `.env.example` created; environment variables documented
-- Temporary adapters used where needed to avoid breaking changes
+Set up TypeScript infrastructure and create clean project structure for Stories 1-4.
 
-## Final Project Structure (target)
+**Time Estimate:** 2 hours
 
-```
-coi-mvp-etl/
-	.env.example
-	package.json
-	tsconfig.json
-	jest.config.ts
-	README.md
-	docs/
-		AI_AGENT_INSTRUCTIONS.md
-		story0.md                # Story 0 overview
-		story0-implementation.md # This guide
-		story1-implementation.md
-		story2-implementation.md
-		story3-implementation.md
-	src/
-		index.ts
-		types.ts
-		config/
-			index.ts
-			types.ts
-			carriers.ts
-			forms/
-				UScoiFormsConfigs-StateNational.json
-				UScoiFormsConfigs-Munich.json
-			mappings.ts
-		data/
-			client/
-				MongoDbClient.ts              # Story 1
-			services/
-				PolicyDataExtractor.ts        # Story 1 (findPolicyHead)
-				CarrierInfoService.ts         # Story 1
-				CertificateNumberService.ts   # Story 1 (bug fix)
-				ProfessionLookupService.ts    # Story 3
-			utils/
-				generateNamedInsured.ts       # Story 1
-				address/
-					isAddressType.ts            # Story 1
-				getPolicyIdByLineOfBusiness.ts# Story 1
-				getLatestActivePolicy.ts      # Story 1
-				saveInsuranceDocumentUtils.ts # Story 1 (carrier helpers)
-		generator/
-			generateCOI.ts
-			pipeline/
-				runPipeline.ts
-			extract/
-				extract.ts
-			transform/
-				transform.ts
-				types.ts
-			map/
-				map.ts
-			load/
-				loadPdf.ts
-				acord25/
-					pdfGenerator.ts
-				canada/
-					htmlGenerator.ts
-					helpers.ts
-				utils/
-		templates/
-			acord25/
-			html/
-				template.handlebars
-			signatures/
+---
+
+## ⚡ Quick Start (Copy-Paste Commands)
+
+### 1. Install Dependencies (5 min)
+
+```bash
+cd /home/hestergong/Downloads/coi-mvp-etl
+
+# TypeScript & tooling
+yarn add typescript ts-node @types/node
+yarn add -D jest ts-jest @types/jest eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
+
+# Core dependencies
+yarn add dotenv mongodb @aws-sdk/client-s3 pdf-lib handlebars date-fns lodash
+yarn add -D @types/mongodb @types/lodash @types/handlebars
 ```
 
-## Implementation Steps
+### 2. Create Folders (2 min)
 
-### 1) Install tooling (Yarn)
+```bash
+# Data layer (Story 1)
+mkdir -p src/data/{client,services,utils/address}
 
+# ETL Pipeline
+mkdir -p src/generator/{pipeline,extract,transform,map,load/{acord25,canada}}
+
+# Config & Delivery
+mkdir -p src/{config/forms,delivery/templates}
+
+# Templates & Tests
+mkdir -p templates/{acord25,html,signatures} test/{unit,integration,fixtures}
 ```
-yarn add typescript ts-node
-yarn add -D jest ts-jest @types/jest
-yarn add -D eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-prettier eslint-plugin-import prettier
-yarn add dotenv mongodb pdf-lib handlebars
+
+### 3. Copy Assets (5 min)
+
+```bash
+OLD=~/Desktop/repos/foxden-policy-document-backend
+NEW=/home/hestergong/Downloads/coi-mvp-etl
+
+# Form configs
+cp $OLD/src/services/UScertificateOfInsurance/configs/UScoiFormsConfigs-{StateNational,Munich}.json \
+   $NEW/src/config/forms/
+
+# Signatures
+cp $OLD/src/services/USpolicydocument/{stateNational/StateNationalPresidentSignature,munich/MunichUSSignature}.png \
+   $NEW/templates/signatures/
+
+# Templates
+cp $OLD/src/services/UScertificateOfInsurance/assets/acord_25_2016-03.pdf $NEW/templates/acord25/
+cp $OLD/src/services/certificateOfInsurance/template/template.handlebars $NEW/templates/html/
+cp $OLD/src/services/certificateOfInsurance/template/emailBody.html $NEW/src/delivery/templates/coi-email-en.html
 ```
 
-### 2) Add TypeScript config
+---
 
-Create [tsconfig.json](tsconfig.json):
+## 📝 Configuration Files
 
-```
+### tsconfig.json
+```json
 {
-	"compilerOptions": {
-		"target": "ES2020",
-		"module": "ES2020",
-		"moduleResolution": "Node",
-		"strict": true,
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"rootDir": "src",
-		"outDir": "dist"
-	},
-	"include": ["src"],
-	"exclude": ["node_modules", "dist"]
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
 ```
 
-### 3) Set up Jest
-
-Create [jest.config.ts](jest.config.ts):
-
-```
+### jest.config.ts
+```typescript
 import type { Config } from 'jest';
 
 const config: Config = {
-	testEnvironment: 'node',
-	preset: 'ts-jest',
-	roots: ['<rootDir>/src', '<rootDir>/test'],
-	testMatch: ['**/?(*.)+(spec|test).ts']
+  testEnvironment: 'node',
+  preset: 'ts-jest',
+  roots: ['<rootDir>/src', '<rootDir>/test'],
+  testMatch: ['**/?(*.)+(spec|test).ts']
 };
 
 export default config;
 ```
 
-### 4) ESLint + Prettier
-
-Create [.eslintrc.js](.eslintrc.js):
-
-```
+### .eslintrc.js
+```javascript
 module.exports = {
-	parser: '@typescript-eslint/parser',
-	plugins: ['@typescript-eslint', 'import'],
-	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
-	env: { node: true, es2021: true },
-	parserOptions: { sourceType: 'module' }
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
+  env: { node: true, es2021: true }
 };
 ```
 
-Create [.prettierrc](.prettierrc):
-
-```
+### .prettierrc
+```json
 {
-	"singleQuote": true,
-	"semi": true
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "printWidth": 100
 }
 ```
 
-### 5) Package scripts
-
-Update [package.json](package.json) scripts:
-
-```
-{
-	"scripts": {
-		"build": "tsc",
-		"start": "node --enable-source-maps dist/index.js",
-		"dev": "ts-node src/index.ts",
-		"test": "jest",
-		"lint": "eslint 'src/**/*.ts'",
-		"format": "prettier -w ."
-	}
-}
-```
-
-### 6) Environment variables
-
-Add [ .env.example ](.env.example):
-
-```
+### .env.example
+```bash
 MONGODB_URI=mongodb://localhost:27017/foxden
-EMAIL_SENDER=no-reply@example.com
-EMAIL_TEST_MODE=true
-BROWSERLESS_TOKEN=replace_me
+COI_S3_BUCKETNAME=foxquilt-coi-prod
+BROWSERLESS_API_TOKEN=your-token-here
+EMAIL_SENDER=noreply@foxquilt.com
+SUPPORT_EMAIL=support@foxquilt.com
+EMAIL_BCC3=analytics@foxquilt.com
+EMAIL_TEST_MODE=false
 ```
 
-### 7) File refactor map (mjs → ts)
-
-- [src/index.mjs](src/index.mjs) → [src/index.ts](src/index.ts)
-- [src/types.mjs](src/types.mjs) → [src/types.ts](src/types.ts)
-- [src/generator/generateCOI.mjs](src/generator/generateCOI.mjs) → [src/generator/generateCOI.ts](src/generator/generateCOI.ts)
-- [src/generator/pipeline/runPipeline.mjs](src/generator/pipeline/runPipeline.mjs) → [src/generator/pipeline/runPipeline.ts](src/generator/pipeline/runPipeline.ts)
-- [src/generator/extract/extract.mjs](src/generator/extract/extract.mjs) → [src/generator/extract/extract.ts](src/generator/extract/extract.ts)
-- [src/generator/transform/transform.mjs](src/generator/transform/transform.mjs) → [src/generator/transform/transform.ts](src/generator/transform/transform.ts)
-- [src/generator/map/map.mjs](src/generator/map/map.mjs) → [src/generator/map/map.ts](src/generator/map/map.ts)
-- [src/generator/load/loadPdf.mjs](src/generator/load/loadPdf.mjs) → [src/generator/load/loadPdf.ts](src/generator/load/loadPdf.ts)
-- [src/generator/load/canada/htmlGenerator.mjs](src/generator/load/canada/htmlGenerator.mjs) → [src/generator/load/canada/htmlGenerator.ts](src/generator/load/canada/htmlGenerator.ts)
-- [src/generator/load/html/helpers.mjs](src/generator/load/html/helpers.mjs) → [src/generator/load/canada/helpers.ts](src/generator/load/canada/helpers.ts)
-
-Transitional adapters are acceptable during migration (re-export functions) to avoid breaking runtime while renames land.
-
-### 8) Create scaffolding for future stories
-
-Add empty/stub files (to be implemented in Stories 1–3):
-
-- [src/data/client/MongoDbClient.ts](src/data/client/MongoDbClient.ts)
-- [src/data/services/PolicyDataExtractor.ts](src/data/services/PolicyDataExtractor.ts)
-- [src/data/services/CarrierInfoService.ts](src/data/services/CarrierInfoService.ts)
-- [src/data/services/CertificateNumberService.ts](src/data/services/CertificateNumberService.ts)
-- [src/data/utils/generateNamedInsured.ts](src/data/utils/generateNamedInsured.ts)
-- [src/data/utils/address/isAddressType.ts](src/data/utils/address/isAddressType.ts)
-- [src/data/utils/getPolicyIdByLineOfBusiness.ts](src/data/utils/getPolicyIdByLineOfBusiness.ts)
-- [src/data/utils/getLatestActivePolicy.ts](src/data/utils/getLatestActivePolicy.ts)
-- [src/data/utils/saveInsuranceDocumentUtils.ts](src/data/utils/saveInsuranceDocumentUtils.ts)
-
-These stubs should export the correct function names with `throw new Error('Not implemented in Story 0');` to ensure callers fail fast if accidentally invoked.
-
-### 9) Config consolidation
-
-- Create [src/config/index.ts](src/config/index.ts) that loads a typed `COI_CONFIG` and exposes geography, carrier, forms, and formatting defaults.
-- Move US ACORD JSON into [src/config/forms/](src/config/forms/) and expose via config.
-- Create [src/config/types.ts](src/config/types.ts) and [src/config/carriers.ts](src/config/carriers.ts).
-- Keep Canada defaults (currency `CAD`, date `yyyy/MM/dd`) driven by config.
-
-### 10) Keep generation working
-
-- Maintain current behavior by providing minimal adapters where necessary (e.g., import paths) while TypeScript migration is staged.
-- Run tests and a manual generation to confirm no regressions.
-
-## Dependent Functions & Where They Will Live
-
-Old system references (do not modify):
-
-- Canada COI entry: [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
-- US COI entry: [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
-- Helpers to port:
-	- [foxden-policy-document-backend/src/services/utils/findPolicyHead.ts](foxden-policy-document-backend/src/services/utils/findPolicyHead.ts) → [src/data/services/PolicyDataExtractor.ts](src/data/services/PolicyDataExtractor.ts)
-	- [foxden-policy-document-backend/src/utils/generateNamedInsured.ts](foxden-policy-document-backend/src/utils/generateNamedInsured.ts) → [src/data/utils/generateNamedInsured.ts](src/data/utils/generateNamedInsured.ts)
-	- [foxden-policy-document-backend/src/utils/address/isAddressType.ts](foxden-policy-document-backend/src/utils/address/isAddressType.ts) → [src/data/utils/address/isAddressType.ts](src/data/utils/address/isAddressType.ts)
-	- [foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts](foxden-policy-document-backend/src/services/utils/getPolicyIdByLineOfBusiness.ts) → [src/data/utils/getPolicyIdByLineOfBusiness.ts](src/data/utils/getPolicyIdByLineOfBusiness.ts)
-	- [foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts](foxden-policy-document-backend/src/services/utils/getLatestPolicy.ts) → [src/data/utils/getLatestActivePolicy.ts](src/data/utils/getLatestActivePolicy.ts)
-	- [foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts](foxden-policy-document-backend/src/services/utils/saveInsuranceDocumentUtils.ts) → [src/data/utils/saveInsuranceDocumentUtils.ts](src/data/utils/saveInsuranceDocumentUtils.ts)
-	- [foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionNameList.ts) → [src/data/services/ProfessionLookupService.ts](src/data/services/ProfessionLookupService.ts)
-	- [foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionMapper.ts](foxden-policy-document-backend/src/services/policyDocument/utils/getProfessionMapper.ts) → [src/data/services/ProfessionLookupService.ts](src/data/services/ProfessionLookupService.ts)
-
-## Verification
-
-After scaffolding:
-
-```
-yarn build
-yarn test
-yarn dev
+### package.json scripts
+```json
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node --enable-source-maps dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "lint": "eslint 'src/**/*.ts'",
+    "format": "prettier --write ."
+  }
+}
 ```
 
-Confirm the demo handler still runs and generates sample outputs. Address any TypeScript compilation issues before proceeding to Story 1.
+---
 
-## Notes
+## 🔄 Convert .mjs → .ts (30 min)
 
-- Use Yarn for all package operations.
-- Keep business logic unmodified during Story 0; only structure and tooling change.
-- Canada HTML helpers should be moved to [src/generator/load/canada/helpers.ts](src/generator/load/canada/helpers.ts) to align with later stories.
+**Files to convert:**
+1. `src/index.mjs` → `src/index.ts`
+2. `src/types.mjs` → `src/types.ts`
+3. `src/generator/generateCOI.mjs` → `src/generator/generateCOI.ts`
+4. `src/generator/pipeline/runPipeline.mjs` → `src/generator/pipeline/runPipeline.ts`
+5. `src/generator/extract/extract.mjs` → `src/generator/extract/extract.ts`
+6. `src/generator/transform/transform.mjs` → `src/generator/transform/transform.ts`
+7. `src/generator/map/map.mjs` → `src/generator/map/map.ts`
+8. `src/generator/load/loadPdf.mjs` → `src/generator/load/loadPdf.ts`
+9. `src/generator/load/canada/htmlGenerator.mjs` → `src/generator/load/canada/htmlGenerator.ts`
+10. `src/generator/load/html/helpers.mjs` → `src/generator/load/canada/helpers.ts` **(move!)**
+
+**Per file:**
+1. Rename `.mjs` → `.ts`
+2. Add type annotations
+3. Remove `.mjs` from imports
+4. Run `yarn typecheck` and fix errors
+
+---
+
+## 🔨 Create Stub Files (20 min)
+
+These will be implemented in Story 1. Create with error stubs:
+
+**src/data/client/MongoDbClient.ts:**
+```typescript
+export class MongoDbClient {
+  async connect(uri: string): Promise<void> {
+    throw new Error('Story 1: Not implemented');
+  }
+  getDb(): any {
+    throw new Error('Story 1: Not implemented');
+  }
+}
+```
+
+**src/data/services/PolicyDataExtractor.ts:**
+```typescript
+export async function findPolicyHead(params: any, context: any): Promise<any> {
+  throw new Error('Story 1: Port from findPolicyHead.ts (195 lines)');
+}
+```
+
+**src/data/utils/generateNamedInsured.ts:**
+```typescript
+export function generateNamedInsured(companyName: unknown, dbaName: unknown): string {
+  throw new Error('Story 1: Port from generateNamedInsured.ts (16 lines)');
+}
+```
+
+**src/data/utils/address/isAddressType.ts:**
+```typescript
+export function isAddressType(val: unknown): boolean {
+  throw new Error('Story 1: Port from isAddressType.ts (21 lines)');
+}
+```
+
+**src/data/utils/getPolicyIdByLineOfBusiness.ts:**
+```typescript
+export function getPolicyIdByLineOfBusiness(policies: any[], lob: string): string {
+  throw new Error('Story 1: Port from getPolicyIdByLineOfBusiness.ts (19 lines)');
+}
+```
+
+**src/data/utils/getLatestActivePolicy.ts:**
+```typescript
+export async function getLatestActivePolicy(params: any): Promise<any> {
+  throw new Error('Story 1: Port from getLatestPolicy.ts (44 lines)');
+}
+```
+
+**src/data/utils/saveInsuranceDocumentUtils.ts:**
+```typescript
+export async function getCarrierFromPolicy(policy: any, logger: any): Promise<string> {
+  throw new Error('Story 1: Port from saveInsuranceDocumentUtils.ts (35 lines)');
+}
+```
+
+**src/data/services/ProfessionLookupService.ts:**
+```typescript
+export async function getProfessionNameList(professions: string[]): Promise<string[]> {
+  throw new Error('Story 3: Port from getProfessionNameList.ts (13 lines)');
+}
+```
+
+---
+
+## ⚙️ Configuration System (15 min)
+
+**src/config/types.ts:**
+```typescript
+export interface COIConfig {
+  geography: {
+    canada: { dateFormat: string; currency: string; insuranceCompany: string };
+    us: { dateFormat: string; currency: string };
+  };
+  carriers: Record<string, CarrierInfo>;
+}
+
+export interface CarrierInfo {
+  name: string;
+  displayName: string;
+  signaturePath?: string;
+  formsConfigPath?: string;
+  supportedGeographies: string[];
+  supportedLOBs: string[];
+}
+```
+
+**src/config/carriers.ts:**
+```typescript
+export const carriers = {
+  StateNational: {
+    name: 'StateNational',
+    displayName: 'State National Insurance Company',
+    signaturePath: 'templates/signatures/StateNationalPresidentSignature.png',
+    formsConfigPath: 'src/config/forms/UScoiFormsConfigs-StateNational.json',
+    supportedGeographies: ['US'],
+    supportedLOBs: ['GL', 'EO'],
+  },
+  Munich: {
+    name: 'Munich',
+    displayName: 'Munich Re',
+    signaturePath: 'templates/signatures/MunichUSSignature.png',
+    formsConfigPath: 'src/config/forms/UScoiFormsConfigs-Munich.json',
+    supportedGeographies: ['US'],
+    supportedLOBs: ['GL', 'EO'],
+  },
+};
+```
+
+**src/config/index.ts:**
+```typescript
+import { carriers } from './carriers';
+
+export const COI_CONFIG = {
+  geography: {
+    canada: {
+      dateFormat: 'yyyy/MM/dd',
+      currency: 'CAD',
+      insuranceCompany: "Certain Underwriters at Lloyd's of London",
+    },
+    us: {
+      dateFormat: 'MM-dd-yyyy',
+      currency: 'USD',
+    },
+  },
+  carriers,
+};
+
+export * from './types';
+```
+
+---
+
+## ✅ Verification (5 min)
+
+```bash
+# All should pass:
+yarn typecheck    # No TypeScript errors
+yarn lint         # No critical errors
+yarn build        # Creates dist/ folder
+yarn test         # Runs (may be 0 tests)
+```
+
+---
+
+## 📋 Acceptance Criteria
+
+Check these off in [COVERAGE_MATRIX.md](./COVERAGE_MATRIX.md#story-0-setup):
+
+- [ ] Dependencies installed
+- [ ] Config files created (6 files)
+- [ ] Folders created
+- [ ] Assets copied (7 files)
+- [ ] .mjs files converted (10 files)
+- [ ] Stub files created (8 files)
+- [ ] Configuration system created (3 files)
+- [ ] `yarn build` succeeds
+- [ ] `yarn typecheck` passes
+
+---
+
+## 🚀 Next Steps
+
+After Story 0 is complete, Story 1 will:
+1. Replace all 8 stub functions with real code from old system
+2. Extract 18 data fields from MongoDB
+3. Connect to real database
+
+See [story1-implementation.md](./story1-implementation.md) for details.
+
+---
+
+## 🆘 Troubleshooting
+
+**TypeScript errors:** Check import paths, add missing `@types/*` packages
+**Build fails:** Run `yarn typecheck` to see specific errors
+**Assets not found:** Verify old system path exists
+
+---
+
+**Estimated Time:** 2 hours
