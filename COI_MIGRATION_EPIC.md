@@ -65,10 +65,6 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 - [DONE] Fully tested and production-ready
 - [DONE] Deployed and ready to receive traffic
 
-### MVP Scope
-
-- Stories 0–3 define the MVP deliverable (TypeScript setup, Data Layer, Transform Layer, and Configuration Management). Story 4 (Email & Delivery) and beyond are post-MVP.
-
 ### Covered Scenarios (MVP)
 - US COI (GL, EO): StateNational and Munich carriers (ACORD 25)
 - Canada COI (GL, optional EO, optional others): Lloyd's (configurable via config)
@@ -88,113 +84,100 @@ Build a production-ready, standalone COI generation service based on [COI-MVP](h
 Prepare the project baseline to support all subsequent stories. Convert to TypeScript and refactor the current code/layout into a clean, maintainable structure that aligns with the planned ETL, config, and future delivery/API work. Establish tooling (lint, test, build), environment management, and conventions so later stories plug in without churn.
 
 ### Scope
-
-- Define and create the final project folder structure (see below).
-- Convert `.mjs` to `.ts` (ESM-compatible) and move files to their new homes.
-- Add TypeScript configuration (`tsconfig.json`) with strict typing and path aliases.
-- Add developer tooling: ESLint, Prettier, Jest (ts-jest), and basic CI-ready scripts.
-- Update `package.json` scripts for build, test, lint, format, and run.
-- Introduce environment management: `.env`, `.env.example` with required vars.
-- Keep current functionality working during refactor (temporary adapters if needed).
+ - Convert `.mjs` files to `.ts` with strict TypeScript settings.
+ - Establish final folder layout under `src/` for ETL (extract/transform/map/load), data layer, and config.
+ - Add Jest (ts-jest), ESLint, and Prettier; update `package.json` scripts.
+ - Add environment management with `.env.example` and required variables.
+ - Move Canada HTML helpers to `src/generator/load/canada/helpers.ts`.
+ - Stage US ACORD JSON forms under `src/config/forms/`.
+ - Keep current generation working via transitional adapters during migration.
+ - Document dependent functions mapping in [docs/story0-implementation.md](docs/story0-implementation.md).
 
 ### Final Project Structure (planned)
-
-```
-coi-mvp-etl/
-  src/
-    api/                  # Story 5+ (placeholder)
-    config/               # Story 3: forms, carriers, mappings, validation
-      forms/
-      carriers/
-      mappings/
-      professions/
-      validation/
-      index.ts
-    data/                 # Story 1: data layer
-      client/MongoDbClient.ts
-      services/
-        PolicyDataExtractor.ts
-        CertificateNumberService.ts
-        ProfessionLookupService.ts
-        PolicyMetadataService.ts
-        CarrierInfoService.ts
-      utils/
-        generateNamedInsured.ts
-        getPolicyIdByLineOfBusiness.ts
-        address/isAddressType.ts
-      types/PolicyView.ts
-    generator/
-      extract/extract.ts
-      transform/transform.ts
-      transform/types.ts
-      map/map.ts
-      load/
-        canada/
-          htmlGenerator.ts
-          helpers.ts
-        acord25/
-          pdfGenerator.ts
-        utils/
-          formatters.ts
-      pipeline/runPipeline.ts
-      generateCOI.ts
-    delivery/             # Story 4+ (placeholder)
-      EmailService.ts
-      DeliveryOrchestrator.ts
-      templates/
-        coi-email-en.html
-    templates/
-      acord25/
-      html/
-        template.handlebars
-      signatures/
-    index.ts
-    types.ts
-  docs/
-    AI_AGENT_INSTRUCTIONS.md
-    story1-implementation.md
-    story2-implementation.md
-    story3-implementation.md
-  tsconfig.json
-  jest.config.ts
-  .eslintrc.cjs
-  .prettierrc
-  .env.example
-```
-
-### Refactor Mapping (old → new)
-
-- `src/index.mjs` → `src/index.ts`
-- `src/types.mjs` → `src/types.ts`
-- `src/fixtures.mjs` → removed (Story 1 adds real data layer)
-- `src/generator/extract/fixtures.mjs` → removed
-- `src/generator/extract/extract.mjs` → `src/generator/extract/extract.ts`
-- `src/generator/transform/transform.mjs` → `src/generator/transform/transform.ts`
-- `src/generator/map/map.mjs` → `src/generator/map/map.ts`
-- `src/generator/load/html/helpers.mjs` → `src/generator/load/canada/helpers.ts`
-- `src/generator/load/html/…` → `src/generator/load/canada/…`
-- `src/generator/load/acord25/pdfGenerator.mjs` → `src/generator/load/acord25/pdfGenerator.ts`
-- `src/generator/pipeline/runPipeline.mjs` → `src/generator/pipeline/runPipeline.ts`
+ ```
+ coi-mvp-etl/
+   .env.example
+   package.json
+   tsconfig.json
+   jest.config.ts
+   README.md
+   docs/
+     AI_AGENT_INSTRUCTIONS.md
+     story0.md                # Story 0 overview
+     story0-implementation.md # Detailed guide
+     story1-implementation.md
+     story2-implementation.md
+     story3-implementation.md
+   src/
+     index.ts
+     types.ts
+     config/
+       index.ts
+       types.ts
+       carriers.ts
+       forms/
+         UScoiFormsConfigs-StateNational.json
+         UScoiFormsConfigs-Munich.json
+       mappings.ts
+     data/
+       client/
+         MongoDbClient.ts              # Story 1
+       services/
+         PolicyDataExtractor.ts        # Story 1 (findPolicyHead)
+         CarrierInfoService.ts         # Story 1
+         CertificateNumberService.ts   # Story 1 (bug fix)
+         ProfessionLookupService.ts    # Story 3
+       utils/
+         generateNamedInsured.ts       # Story 1
+         address/
+           isAddressType.ts            # Story 1
+         getPolicyIdByLineOfBusiness.ts# Story 1
+         getLatestActivePolicy.ts      # Story 1
+         saveInsuranceDocumentUtils.ts # Story 1 (carrier helpers)
+     generator/
+       generateCOI.ts
+       pipeline/
+         runPipeline.ts
+       extract/
+         extract.ts
+       transform/
+         transform.ts
+         types.ts
+       map/
+         map.ts
+       load/
+         loadPdf.ts
+         acord25/
+           pdfGenerator.ts
+         canada/
+           htmlGenerator.ts
+           helpers.ts
+         utils/
+     templates/
+       acord25/
+       html/
+         template.handlebars
+       signatures/
+ ```
 
 ### Acceptance Criteria
-
-- [ ] TypeScript enabled with strict mode, ESM target, and path aliases.
-- [ ] Project folder structure created as above; placeholders added for future stories (delivery/api) but not wired yet.
-- [ ] Core files converted to `.ts` and relocated per the mapping.
-- [ ] Basic tooling in place: ESLint (TypeScript), Prettier, Jest with `ts-jest`.
-- [ ] `package.json` scripts:
-  - `build` (tsc), `dev` (ts-node or nodemon + ts-node), `test`, `lint`, `format`.
-- [ ] Environment scaffolding: `.env.example` and config loader reading `MONGODB_URI`.
-- [ ] Temporary adapters or re-export shims added if needed to keep existing import paths compiling during transition.
-- [ ] CI-ready defaults (no failing lint/tests on fresh clone).
+ - TypeScript set up with strict mode (`tsconfig.json`).
+ - Project compiles and runs with `yarn build` and `yarn dev`.
+ - Jest, ESLint, Prettier configured and runnable.
+ - `.env.example` includes required vars (`MONGODB_URI`, `EMAIL_SENDER`, `EMAIL_TEST_MODE`, `BROWSERLESS_TOKEN`).
+ - Folder structure matches planned layout.
+ - Canada helpers relocated; US ACORD JSONs staged in `src/config/forms/`.
+ - Documentation updated: [docs/story0-implementation.md](docs/story0-implementation.md).
 
 ### Technical Notes
-
-- Use Node.js 20, `module` type ESM in `package.json`.
-- `tsconfig.json`: `target: ES2022`, `module: ES2022`, `moduleResolution: NodeNext`, `esModuleInterop: true`, `resolveJsonModule: true`.
-- Path aliases example: `"paths": { "@data/*": ["src/data/*"], "@generator/*": ["src/generator/*"] }`.
-- Keep Browserless/PDF renderers unchanged; only relocate/import.
-- Do not introduce business logic changes in Story 0; focus on structure and tooling.
+ - Port, don't rewrite. Keep business logic unchanged in this story; focus on structure/tooling.
+ - Use Yarn for package management (`yarn build`, `yarn dev`, `yarn test`).
+ - Provide transitional adapters where necessary to avoid breaking runtime during file renames.
+ - Create stubs for Story 1–3 files that export correct function names and throw `Not implemented in Story 0`.
+ - Canada/US reference files (read-only):
+   - Canada COI: [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+   - US COI: [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
+ - See detailed steps in [docs/story0-implementation.md](docs/story0-implementation.md).
 
 ---
 
@@ -560,29 +543,91 @@ Build API and event interfaces for COI-MVP service. Support both synchronous (RE
 - [ ] Define event schemas using JSON Schema:
   - `COIRequested` schema:
     ```json
-    {
+
+    - Convert `.mjs` files to `.ts` with strict TypeScript settings.
+    - Establish final folder layout under `src/` for ETL (extract/transform/map/load), data layer, and config.
+    - Add Jest (ts-jest), ESLint, and Prettier; update `package.json` scripts.
+    - Add environment management with `.env.example` and required variables.
+    - Move Canada HTML helpers to `src/generator/load/canada/helpers.ts`.
+    - Stage US ACORD JSON forms under `src/config/forms/`.
+    - Keep current generation working via transitional adapters during migration.
+    - Document dependent functions mapping in [docs/story0-implementation.md](docs/story0-implementation.md).
       "applicationId": "string",
       "policyFoxdenId": "string",
-      "geography": "US | CA",
+
+    ```
+    coi-mvp-etl/
+      .env.example
+      package.json
+      tsconfig.json
+      jest.config.ts
+      README.md
+      docs/
+        AI_AGENT_INSTRUCTIONS.md
+        story0.md                # Story 0 overview
+        story0-implementation.md # Detailed guide
+        story1-implementation.md
+        story2-implementation.md
+        story3-implementation.md
+      src/
+        index.ts
+        types.ts
+        config/
+          index.ts
+          types.ts
+          carriers.ts
+          forms/
+            UScoiFormsConfigs-StateNational.json
+            UScoiFormsConfigs-Munich.json
+          mappings.ts
+        data/
+          client/
+            MongoDbClient.ts              # Story 1
+          services/
+            PolicyDataExtractor.ts        # Story 1 (findPolicyHead)
+            CarrierInfoService.ts         # Story 1
+            CertificateNumberService.ts   # Story 1 (bug fix)
+            ProfessionLookupService.ts    # Story 3
+          utils/
+            generateNamedInsured.ts       # Story 1
+            address/
+              isAddressType.ts            # Story 1
+            getPolicyIdByLineOfBusiness.ts# Story 1
+            getLatestActivePolicy.ts      # Story 1
+            saveInsuranceDocumentUtils.ts # Story 1 (carrier helpers)
+        generator/
+          generateCOI.ts
+          pipeline/
+            runPipeline.ts
+          extract/
+            extract.ts
+          transform/
+            transform.ts
+            types.ts
+          map/
+            map.ts
+          load/
+            loadPdf.ts
+            acord25/
+              pdfGenerator.ts
+            canada/
+              htmlGenerator.ts
+              helpers.ts
+            utils/
+        templates/
+          acord25/
+          html/
+            template.handlebars
+          signatures/
+    ```
       "timeZone": "string",
       "carrierPartner": "string",
-      "lobs": ["GL", "EO", ...],
-      "additionalInsured": {
-        "name": "string",
-        "address": { "street", "city", "province", "postalCode" }
-      },
-      "recipientEmail": "string"
-    }
-    ```
+
   - `COILobGenerationCompleted` schema:
     ```json
-    {
-      "applicationId": "string",
-      "policyFoxdenId": "string",
-      "lob": "string",
-      "geography": "string",
-      "s3Key": "string",
-      "s3Bucket": "string",
+
+      - Canada COI: [foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/certificateOfInsurance/sendCertificateOfInsurance.ts)
+      - US COI: [foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts](foxden-policy-document-backend/src/services/UScertificateOfInsurance/sendUsCertificateOfInsurance.ts)
       "status": "success | failed",
       "error": "string | null",
       "timestamp": "ISO8601"
