@@ -1,0 +1,23 @@
+{
+  "forms": [
+    { "formName": "US-Coi-insured", "type": "text", "formVariable": "insured" },
+
+    { "formName": "US-Coi-policyNumber", "type": "text", "formVariable": "policyNumber", "isDigit": true },
+    { "formName": "US-Coi-certificateNumber", "type": "text", "formVariable": "certificateNumber", "isDigit": true },
+
+    { "formName": "US-Coi-policyEffective", "type": "text", "formVariable": "effectiveDate" },
+    { "formName": "US-Coi-policyExpire", "type": "text", "formVariable": "expirationDate" },
+
+    { "formName": "US-Coi-limit-eachOccurence", "type": "text", "formVariable": "occurrenceLimit" },
+    { "formName": "US-Coi-limit-generalAggregate", "type": "text", "formVariable": "aggregateLimit" },
+    { "formName": "US-Coi-limit-medExp", "type": "text", "formVariable": "medicalPaymentsLimit" },
+    { "formName": "US-Coi-limit-damageToRented", "type": "text", "formVariable": "premisesRentedToYouLimit" },
+
+    { "formName": "US-Coi-description", "type": "text", "formVariable": "description" },
+
+    { "formName": "US-Coi-producerEmail", "type": "text", "formVariable": "producerEmail" },
+    { "formName": "US-Coi-producerPhoneNumber", "type": "text", "formVariable": "producerPhone" },
+
+    { "formName": "US-Coi-dateNow", "type": "text", "formVariable": "dateNow" }
+  ]
+}
